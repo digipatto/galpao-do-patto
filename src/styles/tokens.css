@@ -55,6 +55,13 @@
   --brilho-holo: 0 0 24px color-mix(in srgb, var(--holo) 45%, transparent);
   --brilho-acento: 0 0 20px color-mix(in srgb, var(--acento) 35%, transparent);
 
+  /* superfícies do mundo 3D — lidas pelo useCorToken, nunca por CSS.
+     Não têm variante clara: o galpão é noturno sempre (regra 10). */
+  --mundo-piso: var(--p-azul-noite);
+  --mundo-metal: var(--p-grafite-700);
+  --mundo-metal-claro: var(--p-grafite-600);
+  --mundo-vidro: var(--p-ciano);
+
   /* tipografia */
   --fonte-display: "Clash Display", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --fonte-corpo: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
