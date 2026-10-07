@@ -1,71 +1,198 @@
 ---
+import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import CardProduto from '../components/CardProduto.astro';
-import { listarOfertas } from '../lib/ofertas';
+import FiltroFlip from '../components/FiltroFlip.tsx';
+import { listarOfertas, formatarPreco } from '../lib/ofertas';
+import { ROTULO_NICHO } from '../lib/schema';
 
-// Se o JSON tiver dado inválido, isto estoura aqui e o build para — de
-// propósito. Melhor falhar no build que publicar card quebrado.
+// Dado inválido estoura aqui e o build para — de propósito.
 const ofertas = listarOfertas();
+const [destaque, ...demais] = ofertas;
+
+const artigos = (await getCollection('blog', ({ data }) => !data.rascunho)).sort(
+  (a, b) => b.data.publicadoEm.getTime() - a.data.publicadoEm.getTime(),
+);
+const ultimoArtigo = artigos[0];
 ---
 
 <Base
-  titulo="O Galpão do Patto — achados do Mercado Livre"
-  descricao="Os achados que o Patto garimpou no Mercado Livre. Preço, desconto e o link direto, sem enrolação."
+  titulo="Achados do Patto — garimpo no Mercado Livre"
+  descricao="Um achado de cada vez, escolhido com critério. Preço, desconto e o link direto, sem enrolação."
   secao="achados"
 >
   <section class="abertura">
-    <div class="faixa">
-      <h1>Os achados do Patto</h1>
-      <p>
-        Garimpo no Mercado Livre e deixo aqui o que vale a pena. Toca no card e
-        vai direto pro produto.
-      </p>
+    <div class="faixa abertura-grade">
+      <div class="abertura-texto">
+        <h1>Um achado<br />de cada vez.</h1>
+        <p>
+          Eu garimpo o Mercado Livre e publico só o que passa no filtro. Se está
+          aqui, é porque o desconto é real, o vendedor presta e o preço final
+          fecha. O resto fica de fora — e é esse o trabalho.
+        </p>
+      </div>
+
+      <div class="abertura-patto">
+        <img
+          src="/marca/patto.webp"
+          alt="O Patto, um pato de terno azul e gravata vermelha"
+          width="361"
+          height="656"
+          fetchpriority="high"
+        />
+      </div>
     </div>
   </section>
 
-  <section class="vitrine">
-    <div class="faixa">
-      {
-        ofertas.length === 0 ? (
-          <div class="vazia">
-            <p class="vazia-titulo">O galpão ainda está vazio.</p>
-            <p>
-              O primeiro achado entra como uma linha em
-              <code>src/data/ofertas.json</code>.
+  {
+    destaque ? (
+      <section class="achado" aria-labelledby="titulo-achado">
+        <div class="faixa achado-grade">
+          <div class="achado-foto">
+            <span class="achado-etiqueta">{ROTULO_NICHO[destaque.nicho]}</span>
+            {destaque.img ? (
+              <img
+                src={destaque.img}
+                alt={destaque.titulo}
+                width="516"
+                height="972"
+                loading="eager"
+              />
+            ) : (
+              <span class="achado-semfoto" aria-hidden="true">
+                {destaque.titulo.trim().charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
+
+          <div class="achado-info">
+            <h2 id="titulo-achado">{destaque.titulo}</h2>
+
+            <div class="achado-preco">
+              {destaque.precoDe !== undefined && (
+                <p class="achado-de numeros">
+                  <span class="sr">Preço cheio:</span>
+                  {formatarPreco(destaque.precoDe)}
+                </p>
+              )}
+              <p class="achado-por numeros">
+                {formatarPreco(destaque.preco)}
+                {destaque.desconto !== undefined && (
+                  <span class="achado-desconto numeros">−{destaque.desconto}%</span>
+                )}
+              </p>
+            </div>
+
+            <ul class="achado-fatos">
+              {destaque.loja && (
+                <li>
+                  Vendido por <strong>{destaque.loja}</strong>
+                </li>
+              )}
+              {destaque.full && <li>Entrega Full</li>}
+              <li>Preço e estoque conferidos no dia da publicação</li>
+            </ul>
+
+            <a class="botao" href={destaque.href} rel="sponsored nofollow noopener">
+              Pegar no Mercado Livre
+              <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                <path
+                  d="M4 10h11M11 5l5 5-5 5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </a>
+            <p class="achado-aviso">
+              Link de afiliado. O preço pode mudar no Mercado Livre.
             </p>
           </div>
-        ) : (
-          <>
-            <p class="contagem">
-              {ofertas.length} {ofertas.length === 1 ? 'achado' : 'achados'}
-            </p>
-            <div class="grade">
-              {ofertas.map((oferta) => <CardProduto oferta={oferta} />)}
-            </div>
-          </>
-        )
-      }
+        </div>
+      </section>
+    ) : (
+      <section class="vazio">
+        <div class="faixa">
+          <p class="vazio-titulo">Nenhum achado publicado ainda.</p>
+          <p>O primeiro entra como uma linha em <code>src/data/ofertas.json</code>.</p>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="filtro-secao" aria-labelledby="titulo-filtro">
+    <div class="faixa filtro-grade">
+      <div class="filtro-texto">
+        <h2 id="titulo-filtro">O que fica de fora</h2>
+        <p>
+          Todo dia aparece “70% OFF” em alguma vitrine, e quase sempre o preço
+          cheio foi inflado na semana anterior. Antes de publicar qualquer coisa
+          aqui eu passo o achado por quatro perguntas. A maioria não passa.
+        </p>
+        {ultimoArtigo && (
+          <a class="link-forte" href={`/blog/${ultimoArtigo.id}`}>
+            Ler o método inteiro
+          </a>
+        )}
+      </div>
+
+      <FiltroFlip client:visible />
     </div>
   </section>
+
+  {
+    demais.length > 0 && (
+      <section class="anteriores" aria-labelledby="titulo-anteriores">
+        <div class="faixa">
+          <h2 id="titulo-anteriores">Achados anteriores</h2>
+          <div class="grade">
+            {demais.map((oferta) => (
+              <CardProduto oferta={oferta} />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
 </Base>
 
 <style>
   .faixa {
-    width: min(100% - calc(var(--gutter) * 2), 68rem);
+    width: min(100% - calc(var(--gutter) * 2), 64rem);
     margin-inline: auto;
   }
 
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* ---------- abertura ---------- */
+
   .abertura {
-    padding: 2.5rem 0 1.75rem;
+    padding: var(--e-12) 0 var(--e-8);
+  }
+
+  .abertura-grade {
+    display: grid;
+    gap: var(--e-6);
+    align-items: center;
   }
 
   .abertura h1 {
-    margin: 0 0 0.6rem;
+    margin: 0 0 var(--e-4);
     font-family: var(--fonte-display);
     font-weight: 700;
-    font-size: clamp(1.875rem, 7vw, 3rem);
-    line-height: 1.05;
-    letter-spacing: -0.02em;
+    /* piso: display não passa de 6rem, tracking não passa de -0.04em */
+    font-size: clamp(2.5rem, 10vw, 5rem);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
     color: var(--texto);
     text-wrap: balance;
   }
@@ -73,52 +200,314 @@ const ofertas = listarOfertas();
   .abertura p {
     margin: 0;
     max-width: 44ch;
-    font-size: clamp(0.9375rem, 3.5vw, 1.0625rem);
-    line-height: 1.55;
+    font-size: clamp(1rem, 3.6vw, 1.125rem);
+    line-height: 1.6;
     color: var(--texto-suave);
     text-wrap: pretty;
   }
 
-  .contagem {
-    margin: 0 0 0.875rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+  .abertura-patto {
+    justify-self: center;
+  }
+
+  .abertura-patto img {
+    display: block;
+    width: clamp(10rem, 40vw, 17rem);
+    height: auto;
+    border-radius: var(--raio);
+    /* Uma declaração de elevação: sombra, sem borda. */
+    box-shadow: var(--sombra-alta);
+  }
+
+  @media (min-width: 52rem) {
+    .abertura {
+      padding: var(--e-24) 0 var(--e-16);
+    }
+    .abertura-grade {
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: var(--e-12);
+    }
+    .abertura-patto {
+      justify-self: end;
+    }
+  }
+
+  /* ---------- o achado ---------- */
+
+  .achado {
+    padding: var(--e-8) 0;
+  }
+
+  .achado-grade {
+    display: grid;
+    gap: var(--e-6);
+    padding: var(--e-6);
+    background: var(--fundo-elevado);
+    border-radius: calc(var(--raio) + 4px);
+    box-shadow: var(--sombra);
+  }
+
+  .achado-foto {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding: var(--e-4);
+    background: radial-gradient(
+      ellipse at 50% 40%,
+      color-mix(in srgb, var(--terno) 26%, var(--superficie)),
+      var(--superficie) 72%
+    );
+    border-radius: var(--raio);
+  }
+
+  .achado-foto img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 22rem;
+    object-fit: contain;
+    filter: drop-shadow(0 18px 28px rgb(0 0 0 / 0.45));
+  }
+
+  .achado-semfoto {
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: 4rem;
     color: var(--texto-tenue);
   }
 
-  /* Duas colunas no celular: é como o olho varre vitrine. */
+  .achado-info {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: var(--e-3);
+  }
+
+  /* O nicho é etiqueta sobre a foto, não sobrancelha acima do título: o piso
+     de qualidade proíbe kicker antes de um heading, sem exceção. */
+  .achado-etiqueta {
+    position: absolute;
+    top: var(--e-3);
+    left: var(--e-3);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--marca) 20%, var(--fundo-elevado));
+    color: var(--marca);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .achado-info h2 {
+    margin: 0;
+    font-family: var(--fonte-display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 5.5vw, 2.25rem);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    color: var(--texto);
+    text-wrap: balance;
+  }
+
+  .achado-preco {
+    margin-top: var(--e-1);
+  }
+
+  .achado-de {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--texto-tenue);
+    text-decoration: line-through;
+  }
+
+  .achado-por {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--e-3);
+    margin: 0;
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: clamp(2rem, 7vw, 2.75rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--texto);
+    /* O único momento de movimento da página, na coisa que mais importa.
+       O padrão (sem animação) já é visível: isto só acrescenta. */
+    animation: assenta 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes assenta {
+    from {
+      transform: translateY(0.4rem);
+      opacity: 0.4;
+    }
+  }
+
+  .achado-desconto {
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: var(--cta);
+    color: var(--cta-texto);
+    font-family: var(--fonte-corpo);
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .achado-fatos {
+    margin: var(--e-2) 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--e-1);
+    font-size: 0.9375rem;
+    color: var(--texto-suave);
+  }
+
+  .achado-fatos strong {
+    color: var(--texto);
+    font-weight: 600;
+  }
+
+  .botao {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--e-2);
+    margin-top: var(--e-4);
+    padding: 0.85rem 1.4rem;
+    border-radius: 999px;
+    background: var(--cta);
+    color: var(--cta-texto);
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 8px 22px -10px color-mix(in srgb, var(--cta) 80%, transparent);
+    transition: background-color 0.15s, transform 0.15s;
+  }
+  .botao:hover {
+    background: var(--cta-hover);
+    transform: translateY(-1px);
+  }
+  .botao:active {
+    transform: translateY(0);
+  }
+  .botao svg {
+    width: 1.1em;
+    height: 1.1em;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .botao:hover svg {
+    transform: translateX(3px);
+  }
+
+  .achado-aviso {
+    margin: var(--e-2) 0 0;
+    font-size: 0.8125rem;
+    color: var(--texto-tenue);
+  }
+
+  @media (min-width: 52rem) {
+    .achado-grade {
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: var(--e-12);
+      padding: var(--e-8);
+      align-items: center;
+    }
+  }
+
+  /* ---------- filtro ---------- */
+
+  .filtro-secao {
+    padding: var(--e-16) 0 var(--e-8);
+  }
+
+  .filtro-grade {
+    display: grid;
+    gap: var(--e-8);
+    align-items: center;
+  }
+
+  .filtro-texto h2 {
+    margin: 0 0 var(--e-3);
+    font-family: var(--fonte-display);
+    font-weight: 600;
+    font-size: clamp(1.625rem, 6vw, 2.5rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--texto);
+    text-wrap: balance;
+  }
+
+  .filtro-texto p {
+    margin: 0 0 var(--e-4);
+    max-width: 48ch;
+    line-height: 1.65;
+    color: var(--texto-suave);
+    text-wrap: pretty;
+  }
+
+  .link-forte {
+    display: inline-block;
+    font-weight: 600;
+    color: var(--marca);
+    text-decoration-color: color-mix(in srgb, var(--marca) 45%, transparent);
+  }
+  .link-forte:hover {
+    color: var(--marca-clara);
+    text-decoration-color: currentColor;
+  }
+
+  @media (min-width: 52rem) {
+    .filtro-grade {
+      grid-template-columns: 1fr 20rem;
+      gap: var(--e-12);
+    }
+  }
+
+  /* ---------- anteriores ---------- */
+
+  .anteriores {
+    padding: var(--e-16) 0 0;
+  }
+
+  .anteriores h2 {
+    margin: 0 0 var(--e-6);
+    font-family: var(--fonte-display);
+    font-weight: 600;
+    font-size: clamp(1.375rem, 5vw, 1.875rem);
+    letter-spacing: -0.02em;
+    color: var(--texto);
+  }
+
   .grade {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
-    gap: 0.875rem;
+    gap: var(--e-4);
   }
 
   @media (min-width: 48rem) {
     .grade {
       grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-      gap: 1.25rem;
+      gap: var(--e-6);
     }
   }
 
-  .vazia {
-    padding: 3rem 1.25rem;
+  /* ---------- vazio ---------- */
+
+  .vazio {
+    padding: var(--e-12) 0;
     text-align: center;
-    border: 1px dashed var(--superficie-borda);
-    border-radius: var(--raio);
     color: var(--texto-tenue);
   }
 
-  .vazia p {
-    margin: 0 0 0.4rem;
-  }
-
-  .vazia-titulo {
+  .vazio-titulo {
     font-family: var(--fonte-display);
     font-weight: 600;
     font-size: 1.125rem;
     color: var(--texto);
+    margin: 0 0 var(--e-2);
   }
 
   code {
@@ -126,6 +515,6 @@ const ofertas = listarOfertas();
     padding: 0.1em 0.35em;
     border-radius: var(--raio-sm);
     background: var(--superficie);
-    color: var(--holo);
+    color: var(--marca);
   }
 </style>

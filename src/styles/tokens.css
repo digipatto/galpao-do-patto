@@ -1,214 +1,160 @@
 /* ============================================================
-   O Galpão do Patto — tokens
+   Achados do Patto — tokens
    ÚNICO lugar onde cor da marca mora. Nenhum hex fora deste arquivo.
+
+   A paleta vem do próprio Patto: o azul do terno, o creme da camisa,
+   o laranja do bico e dos pés, o vermelho da gravata. É o que o piso de
+   qualidade pede — textura do mundo do assunto, não decoração genérica.
    ============================================================ */
 
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
 
 /* ---------- 1. Paleta crua (não usar direto na UI) ---------- */
 :root {
-  /* azul-noite / grafite — estrutura do galpão */
-  --p-azul-noite: #15203c;
-  --p-azul-abissal: #0f1320;
+  /* tinta — o azul do terno, escurecido até virar superfície */
+  --p-tinta-900: #0b1018;
+  --p-tinta-800: #111926;
+  --p-tinta-700: #192338;
+  --p-tinta-600: #24314b;
+  --p-tinta-500: #37486a;
 
-  /* âmbar — sinalização, holograma, acento (herança ML) */
-  --p-ambar: #ffc400;
-  --p-ambar-quente: #ff9f0a;
+  /* terno — o azul do Patto, em cheio */
+  --p-terno: #3a5a86;
 
-  /* vermelho — só CTA, etiqueta de desconto, gravata do Patto */
-  --p-vermelho: #e03131;
+  /* bico — o laranja do bico e dos pés. É a assinatura da marca. */
+  --p-bico: #e8913f;
+  --p-bico-claro: #f6b35f;
 
-  /* ciano/teal — holograma e linha-guia do piso */
-  --p-ciano: #3fe0d0;
+  /* gravata — o vermelho. Só em CTA e etiqueta de desconto. */
+  --p-gravata: #d92d2d;
+  --p-gravata-claro: #ef4444;
 
-  /* creme — vidro, luz, card */
-  --p-creme: #fbf8f1;
-
-  /* neutros grafite */
-  --p-grafite-900: #11141c;
-  --p-grafite-800: #1a1f2b;
-  --p-grafite-700: #262d3d;
-  --p-grafite-600: #3a4356;
-  --p-grafite-400: #6f7b93;
-  --p-grafite-200: #b9c1d1;
-  --p-grafite-100: #dfe4ed;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* camisa — o creme */
+  --p-camisa: #f5f1e8;
+  --p-camisa-suave: #c4cad6;
+  --p-camisa-tenue: #8894a8;
 }
 
-/* ---------- 2. Tokens semânticos — TEMA ESCURO (padrão) ---------- */
-/* O galpão é noturno: escuro é a identidade, não uma variação. */
+/* ---------- 2. Tokens semânticos — tema escuro (padrão) ----------
+   Escuro escolhido pela cena de uso, não por categoria: o visitante chega
+   do Instagram, no celular, quase sempre à noite. */
 :root {
-  --fundo: var(--p-azul-abissal);
-  --fundo-elevado: var(--p-azul-noite);
-  --superficie: var(--p-grafite-800);
-  --superficie-borda: var(--p-grafite-700);
+  --fundo: var(--p-tinta-900);
+  --fundo-elevado: var(--p-tinta-800);
+  --superficie: var(--p-tinta-700);
+  --superficie-alta: var(--p-tinta-600);
+  --borda: var(--p-tinta-600);
+  --borda-forte: var(--p-tinta-500);
 
-  --texto: var(--p-creme);
-  --texto-suave: var(--p-grafite-200);
-  --texto-tenue: var(--p-grafite-400);
+  --texto: var(--p-camisa);
+  --texto-suave: var(--p-camisa-suave);
+  --texto-tenue: var(--p-camisa-tenue);
 
-  --acento: var(--p-ambar);
-  --acento-quente: var(--p-ambar-quente);
-  --holo: var(--p-ciano);
-  --cta: var(--p-vermelho);
-  --cta-texto: var(--p-creme);
-
-  --brilho-holo: 0 0 24px color-mix(in srgb, var(--holo) 45%, transparent);
-  --brilho-acento: 0 0 20px color-mix(in srgb, var(--acento) 35%, transparent);
-
-  /* nicho — cor de etiqueta e de fundo do card sem foto.
-     Metadado: serve pra reconhecer e filtrar, não divide o site. */
-  --nicho-eletronicos: #4c8dff;
-  --nicho-casa: #ff9f6e;
-  --nicho-beleza: #ff7ab8;
-  --nicho-informatica: #7c6cff;
-  --nicho-ferramentas: #f2b544;
-  --nicho-automotivo: #5ec8c0;
-  --nicho-pet: #9ad36a;
-  --nicho-fitness: #ff6b6b;
-  --nicho-curiosos: #c6a4ff;
+  --marca: var(--p-bico);
+  --marca-clara: var(--p-bico-claro);
+  --terno: var(--p-terno);
+  --cta: var(--p-gravata);
+  --cta-hover: var(--p-gravata-claro);
+  --cta-texto: #ffffff;
 
   /* tipografia */
-  --fonte-display: "Clash Display", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --fonte-corpo: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --fonte-display: "Clash Display", "Satoshi", ui-sans-serif, system-ui, sans-serif;
+  --fonte-corpo: "Satoshi", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
-  /* ritmo */
-  --raio: 0.75rem;
-  --raio-sm: 0.375rem;
-  --gutter: 1rem;
+  /* ritmo — escala de espaçamento, pra parar de inventar número */
+  --e-1: 0.25rem;
+  --e-2: 0.5rem;
+  --e-3: 0.75rem;
+  --e-4: 1rem;
+  --e-6: 1.5rem;
+  --e-8: 2rem;
+  --e-12: 3rem;
+  --e-16: 4rem;
+  --e-24: 6rem;
+
+  --raio: 14px; /* piso de qualidade: cards entre 12 e 16px */
+  --raio-sm: 8px;
+  --gutter: 1.25rem;
+
+  /* elevação: sombra COM deslocamento e desfoque, nunca halo sem offset.
+     E só uma declaração de elevação por elemento — sombra OU borda. */
+  --sombra: 0 10px 30px -12px rgb(0 0 0 / 0.65);
+  --sombra-alta: 0 24px 60px -20px rgb(0 0 0 / 0.75);
 
   color-scheme: dark;
 }
 
-/* ---------- 3. Tokens semânticos — TEMA CLARO (opt-in) ---------- */
-/* O galpão NÃO segue o `prefers-color-scheme` do aparelho, de propósito:
-   o mundo 3D é noturno sempre, e uma moldura creme em volta de uma cena
-   escura briga com ela. Escuro é identidade, não preferência.
-   O tema claro existe pra quem pedir explicitamente — pensando no Modo Lista
-   (Parte 4), que é 2D puro e pode querer fundo claro. Liga com:
-   <html data-tema="claro"> */
+/* ---------- 3. Tema claro (opt-in, pensando no Modo Lista) ---------- */
 :root[data-tema="claro"] {
-  --fundo: var(--p-creme);
+  --fundo: var(--p-camisa);
   --fundo-elevado: #ffffff;
   --superficie: #ffffff;
-  --superficie-borda: var(--p-grafite-100);
+  --superficie-alta: #f1ece1;
+  --borda: #e2dccf;
+  --borda-forte: #cfc7b6;
 
-  --texto: var(--p-grafite-900);
-  --texto-suave: var(--p-grafite-600);
-  --texto-tenue: var(--p-grafite-400);
+  --texto: var(--p-tinta-900);
+  --texto-suave: var(--p-tinta-600);
+  --texto-tenue: #6b7383;
 
-  --acento: var(--p-ambar-quente);
-  --acento-quente: var(--p-ambar);
-  --holo: #0f9e92;
-  --cta: var(--p-vermelho);
-  --cta-texto: var(--p-creme);
-
-  --brilho-holo: 0 0 18px color-mix(in srgb, var(--holo) 25%, transparent);
-  --brilho-acento: 0 0 16px color-mix(in srgb, var(--acento) 25%, transparent);
+  --marca: #b9681c;
+  --marca-clara: var(--p-bico);
 
   color-scheme: light;
 }
 
-/* ---------- 4. Ponte pro Tailwind v4 ---------- */
-/* Expõe os tokens como utilitários (bg-fundo, text-acento, font-display…). */
+/* ---------- 4. Ponte pro Tailwind e pro shadcn/Kokonut ----------
+   Os componentes do Kokonut usam as variáveis do shadcn. Apontando elas
+   pros tokens da marca, eles nascem no nosso mundo em vez do cinza padrão. */
 @theme inline {
   --color-fundo: var(--fundo);
   --color-fundo-elevado: var(--fundo-elevado);
   --color-superficie: var(--superficie);
-  --color-superficie-borda: var(--superficie-borda);
+  --color-superficie-alta: var(--superficie-alta);
+  --color-borda: var(--borda);
   --color-texto: var(--texto);
   --color-texto-suave: var(--texto-suave);
   --color-texto-tenue: var(--texto-tenue);
-  --color-acento: var(--acento);
-  --color-acento-quente: var(--acento-quente);
-  --color-holo: var(--holo);
+  --color-marca: var(--marca);
+  --color-marca-clara: var(--marca-clara);
+  --color-terno: var(--terno);
   --color-cta: var(--cta);
-  --color-cta-texto: var(--cta-texto);
 
   --font-display: var(--fonte-display);
   --font-corpo: var(--fonte-corpo);
-  --font-heading: var(--font-sans);
-  --font-sans: 'Geist Variable', sans-serif;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+
+  --radius: var(--raio);
+}
+
+:root {
+  --background: var(--fundo);
+  --foreground: var(--texto);
+  --card: var(--superficie);
+  --card-foreground: var(--texto);
+  --popover: var(--fundo-elevado);
+  --popover-foreground: var(--texto);
+  --primary: var(--marca);
+  --primary-foreground: var(--p-tinta-900);
+  --secondary: var(--superficie-alta);
+  --secondary-foreground: var(--texto);
+  --muted: var(--superficie);
+  --muted-foreground: var(--texto-tenue);
+  --accent: var(--superficie-alta);
+  --accent-foreground: var(--texto);
+  --destructive: var(--cta);
+  --border: var(--borda);
+  --input: var(--borda);
+  --ring: var(--marca);
 }
 
 /* ---------- 5. Base ---------- */
 html {
   background-color: var(--fundo);
   -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -216,11 +162,65 @@ body {
   background-color: var(--fundo);
   color: var(--texto);
   font-family: var(--fonte-corpo);
-  /* mobile-first: nunca rolar de lado */
+  font-size: 1rem;
+  line-height: 1.6;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 6. Superfícies do navegador ----------
+   Seleção, cursor, barra de rolagem e anel de foco vêm com o padrão do
+   navegador, que não pertence a design system nenhum. Vestir isso é o sinal
+   mais barato de que a página foi construída e não montada. */
+::selection {
+  background: color-mix(in srgb, var(--marca) 32%, transparent);
+  color: var(--texto);
+}
+
+:root {
+  caret-color: var(--marca);
+  scrollbar-color: var(--borda-forte) var(--fundo);
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--fundo);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--borda-forte);
+  border-radius: 999px;
+  border: 2px solid var(--fundo);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--marca);
+}
+
+:focus-visible {
+  outline: 2px solid var(--marca);
+  outline-offset: 3px;
+  border-radius: var(--raio-sm);
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: from-font;
+}
+
+/* Preço com algarismos de largura fixa: número não dança ao mudar. */
+.numeros {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *,
   *::before,
   *::after {
@@ -230,48 +230,140 @@ body {
   }
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* ============================================================
+   7. FiltroFlip — o card que vira
+   Mora aqui porque é uma ilha React: estilo com escopo de .astro
+   não alcança o componente.
+   ============================================================ */
+
+.filtro {
+  perspective: 1600px;
+  width: 100%;
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
+.filtro-gatilho {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.filtro-palco {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 19rem;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.filtro[data-virado] .filtro-palco {
+  transform: rotateY(180deg);
+}
+
+.filtro-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--e-6);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.filtro-frente {
+  justify-content: flex-end;
+  gap: var(--e-1);
+}
+
+.filtro-numero {
+  font-family: var(--fonte-display);
+  font-weight: 700;
+  font-size: 5rem;
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  color: var(--marca);
+}
+
+.filtro-titulo {
+  font-family: var(--fonte-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--texto);
+}
+
+.filtro-dica {
+  margin-top: var(--e-3);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--texto-tenue);
+}
+
+.filtro-gatilho:hover .filtro-dica {
+  color: var(--marca);
+}
+
+.filtro-verso {
+  transform: rotateY(180deg);
+  justify-content: center;
+}
+
+.filtro-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: criterio;
+  display: grid;
+  gap: var(--e-3);
+}
+
+.filtro-lista li {
+  counter-increment: criterio;
+  display: grid;
+  gap: 0.1rem;
+  padding-left: 1.6rem;
+  position: relative;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--texto-suave);
+}
+
+/* O número é informação aqui: é a ORDEM do filtro, não enfeite de seção. */
+.filtro-lista li::before {
+  content: counter(criterio);
+  position: absolute;
+  left: 0;
+  top: 0.05rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--marca) 22%, transparent);
+  color: var(--marca);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.filtro-lista strong {
+  color: var(--texto);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filtro-palco {
+    transition: none;
   }
 }

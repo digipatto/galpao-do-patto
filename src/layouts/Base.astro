@@ -4,7 +4,6 @@ import '../styles/tokens.css';
 interface Props {
   titulo: string;
   descricao: string;
-  /** Deixa o link do cabeçalho marcado. */
   secao?: 'achados' | 'blog';
 }
 
@@ -19,21 +18,20 @@ const anoAtual = new Date().getFullYear();
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{titulo}</title>
     <meta name="description" content={descricao} />
+    <meta name="theme-color" content="#0b1018" />
     <meta property="og:title" content={titulo} />
     <meta property="og:description" content={descricao} />
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Clash Display (títulos) e Satoshi (corpo), ambas da Fontshare: uma só
+         origem, um só preconnect. Satoshi no lugar da Inter de propósito — a
+         Inter está em todo site e não dá personalidade nenhuma à marca. -->
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-    />
-    <!-- Clash Display (display da marca) — Fontshare. Fallback: Space Grotesk. -->
-    <link
-      rel="stylesheet"
-      href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap"
+      href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500,700&display=swap"
     />
   </head>
 
@@ -41,10 +39,12 @@ const anoAtual = new Date().getFullYear();
     <a class="pular" href="#conteudo">Pular para o conteúdo</a>
 
     <header class="cabecalho">
-      <div class="faixa">
+      <div class="faixa cabecalho-linha">
         <a class="marca" href="/">
-          O Galpão <span>do Patto</span>
+          <img src="/marca/patto.webp" alt="" width="40" height="40" />
+          <span>Achados <b>do Patto</b></span>
         </a>
+
         <nav class="navegacao" aria-label="Seções">
           <a href="/" aria-current={secao === 'achados' ? 'page' : undefined}>Achados</a>
           <a href="/blog" aria-current={secao === 'blog' ? 'page' : undefined}>Blog</a>
@@ -58,12 +58,18 @@ const anoAtual = new Date().getFullYear();
 
     <footer class="rodape">
       <div class="faixa">
+        <p class="rodape-marca">Achados do Patto</p>
         <p>
-          O Galpão do Patto — achados do Mercado Livre, garimpados a dedo.
+          Garimpo no Mercado Livre e publico um achado de cada vez. No Instagram:{' '}
+          <a href="https://instagram.com/achadoseofertas.patto" rel="me noopener" target="_blank"
+            >@achadoseofertas.patto</a
+          >
         </p>
         <p class="miudo">
-          Alguns links são de afiliado: se você comprar por eles, o Patto ganha
-          uma comissão sem custo nenhum pra você. © {anoAtual}
+          Os links de produto são de afiliado: se você comprar por eles, eu ganho
+          uma comissão e você não paga nada a mais. Não tenho vínculo com o
+          Mercado Livre além do programa de afiliados. Preços e disponibilidade
+          mudam sem aviso — quem manda é a página do produto. © {anoAtual}
         </p>
       </div>
     </footer>
@@ -71,76 +77,93 @@ const anoAtual = new Date().getFullYear();
 </html>
 
 <style>
+  .faixa {
+    width: min(100% - calc(var(--gutter) * 2), 64rem);
+    margin-inline: auto;
+  }
+
   .pular {
     position: absolute;
     left: -9999px;
     top: 0;
-    padding: 0.75rem 1rem;
-    background: var(--acento);
-    color: var(--p-grafite-900);
+    padding: var(--e-3) var(--e-4);
+    background: var(--marca);
+    color: var(--p-tinta-900);
     font-weight: 600;
     border-radius: 0 0 var(--raio-sm) 0;
-    z-index: 10;
+    z-index: 20;
   }
   .pular:focus {
     left: 0;
   }
 
-  .faixa {
-    width: min(100% - calc(var(--gutter) * 2), 68rem);
-    margin-inline: auto;
-  }
-
   .cabecalho {
     position: sticky;
     top: 0;
-    z-index: 5;
-    background: color-mix(in srgb, var(--fundo) 88%, transparent);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--superficie-borda);
+    z-index: 10;
+    background: color-mix(in srgb, var(--fundo) 86%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--borda);
   }
 
-  .cabecalho .faixa {
+  .cabecalho-linha {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    min-height: 3.75rem;
+    gap: var(--e-4);
+    min-height: 3.5rem;
   }
 
   .marca {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--e-2);
     font-family: var(--fonte-display);
-    font-weight: 700;
-    font-size: 1.125rem;
-    letter-spacing: -0.01em;
+    font-weight: 600;
+    font-size: 1.0625rem;
+    letter-spacing: -0.02em;
     color: var(--texto);
     text-decoration: none;
     white-space: nowrap;
   }
-  .marca span {
-    color: var(--acento);
+  .marca b {
+    color: var(--marca);
+    font-weight: 600;
+  }
+  /* O Patto vem de um render com fundo de estúdio. Em vez de fingir recorte
+     com máscara redonda — que o piso de qualidade recusa —, o fundo escuro
+     dele vira a própria moldura do selo. */
+  .marca img {
+    width: 2.25rem;
+    height: 2.25rem;
+    object-fit: cover;
+    object-position: 50% 14%;
+    border-radius: var(--raio-sm);
+    background: var(--p-tinta-800);
   }
 
   .navegacao {
     display: flex;
-    gap: 0.25rem;
+    gap: var(--e-1);
   }
 
   .navegacao a {
-    padding: 0.4rem 0.75rem;
+    padding: 0.4rem 0.8rem;
     border-radius: 999px;
     font-size: 0.9375rem;
     font-weight: 500;
     color: var(--texto-tenue);
     text-decoration: none;
+    transition: color 0.15s, background-color 0.15s;
   }
   .navegacao a:hover {
     color: var(--texto);
     background: var(--superficie);
   }
   .navegacao a[aria-current='page'] {
-    color: var(--texto);
-    background: var(--superficie);
+    color: var(--p-tinta-900);
+    background: var(--marca);
+    font-weight: 600;
   }
 
   main {
@@ -148,18 +171,35 @@ const anoAtual = new Date().getFullYear();
   }
 
   .rodape {
-    margin-top: 4rem;
-    padding: 2rem 0 3rem;
-    border-top: 1px solid var(--superficie-borda);
+    margin-top: var(--e-24);
+    padding: var(--e-12) 0 var(--e-16);
+    border-top: 1px solid var(--borda);
     color: var(--texto-tenue);
     font-size: 0.875rem;
   }
+
   .rodape p {
-    margin: 0 0 0.5rem;
+    margin: 0 0 var(--e-2);
+    max-width: 68ch;
   }
+
+  .rodape-marca {
+    font-family: var(--fonte-display);
+    font-weight: 600;
+    font-size: 1.0625rem;
+    color: var(--texto);
+    letter-spacing: -0.01em;
+  }
+
+  .rodape a {
+    color: var(--marca);
+  }
+
   .rodape .miudo {
+    margin-top: var(--e-4);
     font-size: 0.8125rem;
-    max-width: 48ch;
+    line-height: 1.6;
+    color: var(--texto-tenue);
     text-wrap: pretty;
   }
 </style>

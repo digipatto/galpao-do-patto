@@ -1,32 +1,13 @@
 [
   {
-    "id": "fone-bluetooth-anc",
-    "titulo": "Fone Bluetooth com cancelamento de ruído",
-    "preco": 189.9,
-    "precoDe": 329.9,
+    "id": "iphone-18-pro-2tb-bordo",
+    "titulo": "iPhone 18 Pro 2 TB — Bordô",
+    "preco": 19949.05,
+    "precoDe": 20999,
     "nicho": "eletronicos",
-    "loja": "Mercado Livre",
-    "full": true,
-    "linkAfiliado": "https://www.mercadolivre.com.br/",
-    "criadoEm": "2026-10-06"
-  },
-  {
-    "id": "air-fryer-5l",
-    "titulo": "Air fryer 5L com painel digital",
-    "preco": 279,
-    "precoDe": 399,
-    "nicho": "casa",
-    "full": true,
-    "linkAfiliado": "https://www.mercadolivre.com.br/",
-    "criadoEm": "2026-10-04"
-  },
-  {
-    "id": "teclado-mecanico-compacto",
-    "titulo": "Teclado mecânico compacto 60% RGB",
-    "preco": 219.9,
-    "nicho": "informatica",
-    "loja": "Mercado Livre",
-    "linkAfiliado": "https://www.mercadolivre.com.br/",
-    "criadoEm": "2026-10-01"
+    "loja": "Iplace",
+    "linkAfiliado": "https://meli.la/2LqYDPM",
+    "img": "/produtos/iphone-18-pro-2tb-bordo.webp",
+    "criadoEm": "2026-10-07"
   }
 ]

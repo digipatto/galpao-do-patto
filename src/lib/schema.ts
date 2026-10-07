@@ -50,8 +50,14 @@ export const esquemaOferta = z
     full: z.boolean().optional(),
     /** SEU link de afiliado. Nunca aparece na página — só atrás de /go/[id]. */
     linkAfiliado: z.url(),
-    /** URL da foto do produto. Sem ela o card usa um fundo da cor do nicho. */
-    img: z.url().optional(),
+    /**
+     * Foto do produto: URL completa (ex.: a do Mercado Livre) ou caminho local
+     * a partir de public/ (ex.: "/produtos/fone.png").
+     * Sem ela o card usa um fundo da cor do nicho — não quebra.
+     */
+    img: z
+      .union([z.url(), z.string().regex(/^\/[^\s]+$/, 'caminho local tem que começar com "/"')])
+      .optional(),
     /** Data de publicação (YYYY-MM-DD). Define a ordem da vitrine. */
     criadoEm: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'use o formato AAAA-MM-DD'),
   })

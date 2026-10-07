@@ -1,22 +1,26 @@
-# O Galpão do Patto — convenções do projeto
+# Achados do Patto — convenções do projeto
 
 > `CLAUDE.md` e `AGENTS.md` têm o MESMO conteúdo: editou um, replique no outro.
 >
 > ⚠️ **`plano-galpao-do-patto.md` está superado.** Ele descreve uma versão
 > anterior do produto — um site-jogo 3D (galpão isométrico em React Three
-> Fiber). Essa direção foi abandonada em 07/10/2026: com placeholders a cena
-> parecia um diagrama, não um jogo, e o 3D atrapalhava o que importa (achar o
-> produto e pegar o link). O código 3D está no histórico do git, nos commits
-> até `c3ecde9`. **Este arquivo é a fonte de verdade agora.**
+> Fiber), abandonada em 07/10/2026. O código 3D está no histórico do git, nos
+> commits até `c3ecde9`. **Este arquivo é a fonte de verdade agora**, junto com
+> `PRODUCT.md` (verdade do produto, usado pela skill de design Impeccable).
+>
+> O nome mudou de "O Galpão do Patto" para **Achados do Patto**: "galpão" era a
+> metáfora do jogo, e o nome precisa conversar com @achadoseofertas.patto.
 
 ## O que é
 
 Site de links de afiliado do Mercado Livre. Duas seções:
 
-- **Achados** (`/`) — vitrine de produtos. Toca no card, vai pro Mercado Livre.
+- **Achados** (`/`) — o achado da vez em destaque; anteriores em grade abaixo.
+  Um toque e vai pro Mercado Livre.
 - **Blog** (`/blog`) — artigos, pra trazer tráfego do Google.
 
 Simples, rápido no celular, com o link a um toque de distância.
+O diferencial é a **curadoria**: poucos achados, muito filtro.
 
 ## Regras inquebráveis
 
@@ -30,12 +34,14 @@ Simples, rápido no celular, com o link a um toque de distância.
 3. **Dado inválido derruba o build.** Zod valida `ofertas.json` e o frontmatter
    do blog. Melhor falhar no build que publicar card quebrado.
 
-4. **Zero JavaScript por padrão.** O site é HTML + CSS estático. Se um recurso
-   exigir interatividade, entra como ilha pontual — nunca um framework na
-   página inteira.
+4. **JavaScript só em ilha, nunca na página inteira.** O site é HTML + CSS
+   estático. React existe pros componentes do Kokonut UI, e cada uso é uma ilha
+   explícita (`client:visible` / `client:load`). Se um componente não ganha nada
+   com JS, ele é `.astro`, não `.tsx`.
 
-5. **Mobile-first.** O público vem do Instagram, no celular. Vitrine em duas
-   colunas, preço legível, CTA visível sem rolar.
+5. **Mobile-first, e o link a UM toque.** O público vem do Instagram, no
+   celular. Nada de interação que coloque o CTA a dois toques — foi por isso
+   que o card que vira ficou no filtro de curadoria, não no produto.
 
 6. **`nicho` é metadado, não divide o site.** Serve pra cor da etiqueta e pra
    filtro. Vitrine única, sempre.
@@ -50,6 +56,13 @@ Simples, rápido no celular, com o link a um toque de distância.
    URL. `rascunho: true` tira da listagem e do build.
 
 10. **Construir parte por parte.** Não antecipar escopo futuro.
+
+11. **Design passa pelo Impeccable.** Antes de editar UI, ler
+    `.claude/skills/impeccable/reference/craft-floor.md`. Depois de editar,
+    rodar `.claude/skills/impeccable/scripts/impeccable detect --json <arquivos>`.
+    Proibições que já me pegaram: kicker/sobrancelha acima de heading, grade de
+    cards iguais como estrutura de página, máscara geométrica fingindo recorte
+    de foto, sombra colorida sem deslocamento.
 
 ## Mapa de pastas
 
@@ -92,12 +105,15 @@ Frontmatter: `titulo`, `resumo`, `publicadoEm`, `tags?`, `rascunho?`.
 
 ## Stack
 
-Astro + TypeScript · Tailwind CSS v4 (plugin Vite) · Zod · adapter
-`@astrojs/netlify` · npm. **Sem framework de UI** — nenhum React no projeto.
+Astro + TypeScript · React 19 (só pras ilhas) · Tailwind CSS v4 (plugin Vite) ·
+shadcn + Kokonut UI · Motion · Zod · adapter `@astrojs/netlify` · npm.
 **Versões são fixadas (exatas) no `package.json`** — não usar `^` nem `~`.
+O `shadcn add` traz faixas com `^`: fixar depois de instalar.
 
 ## Paleta
 
-azul-noite `#15203C` / `#0F1320` · âmbar `#FFC400` / `#FF9F0A` ·
-vermelho CTA `#E03131` · ciano `#3FE0D0` · creme `#FBF8F1` · neutros grafite.
-Display: **Clash Display** (fallback Space Grotesk) · Corpo: **Inter**.
+Tirada do próprio Patto, não inventada: tinta do terno `#0B1018`–`#3A5A86` ·
+laranja do bico `#E8913F` (assinatura) · vermelho da gravata `#D92D2D` (só CTA) ·
+creme da camisa `#F5F1E8`.
+Display: **Clash Display** · Corpo: **Satoshi**. Ambas da Fontshare, uma origem
+só. Nada de Inter — o detector marca como fonte supergasta.
