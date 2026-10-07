@@ -23,5 +23,8 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 
-# skills de agente instaladas localmente (reinstalar com `npx skills add`)
+# skills de agente instaladas localmente
+# reinstalar com: npx skills add https://github.com/pbakaus/impeccable --skill impeccable
 .agents/
+.claude/skills/
+.impeccable/
