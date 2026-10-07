@@ -1,7 +1,9 @@
 ---
 import '../styles/tokens.css';
-// Parte 0: página mínima, sem 3D. A ilha do Mundo (client:only="react")
-// entra na Parte 1.
+import Mundo from '../three/Mundo';
+
+// Parte 1: a ilha 3D entra com client:only="react" — WebGL nunca no SSR.
+// HUD, card e Modo Lista são das Partes 3 e 4.
 ---
 
 <!doctype html>
@@ -30,15 +32,42 @@ import '../styles/tokens.css';
 
   <body>
     <main class="palco">
-      <h1 class="titulo">O Galpão do Patto</h1>
-      <p class="subtitulo">Em construção — o galpão está sendo montado.</p>
+      <!--
+        Fica atrás do <Canvas> e some debaixo dele quando a ilha monta.
+        Serve de estado de carregamento e evita tela preta no primeiro frame.
+        O fallback de verdade pra quem não tem WebGL é o Modo Lista, na Parte 4.
+      -->
+      <div class="cortina" aria-hidden="true">
+        <p class="marca">O Galpão do Patto</p>
+      </div>
+
+      <Mundo client:only="react" />
+
+      <noscript>
+        <div class="cortina cortina--aviso">
+          <p class="marca">O Galpão do Patto</p>
+          <p class="aviso">
+            O galpão precisa de JavaScript pra abrir. Em breve haverá um modo
+            lista com todas as ofertas.
+          </p>
+        </div>
+      </noscript>
     </main>
   </body>
 </html>
 
 <style>
   .palco {
-    min-height: 100svh;
+    position: relative;
+    width: 100%;
+    height: 100svh;
+    overflow: hidden;
+    background-color: var(--fundo);
+  }
+
+  .cortina {
+    position: absolute;
+    inset: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -49,21 +78,24 @@ import '../styles/tokens.css';
     background-color: var(--fundo);
   }
 
-  .titulo {
+  .cortina--aviso {
+    /* Acima do canvas: sem JS a ilha nunca monta, então o aviso tem que aparecer. */
+    z-index: 2;
+  }
+
+  .marca {
     margin: 0;
     font-family: var(--fonte-display);
     font-weight: 700;
-    font-size: clamp(2rem, 9vw, 4.5rem);
-    line-height: 1.05;
+    font-size: clamp(1.5rem, 6vw, 2.5rem);
     letter-spacing: -0.02em;
     color: var(--texto);
-    text-wrap: balance;
   }
 
-  .subtitulo {
+  .aviso {
     margin: 0;
-    max-width: 32ch;
-    font-size: clamp(0.9375rem, 3.6vw, 1.0625rem);
+    max-width: 38ch;
+    font-size: 0.9375rem;
     line-height: 1.5;
     color: var(--texto-tenue);
     text-wrap: pretty;

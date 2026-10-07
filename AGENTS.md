@@ -67,7 +67,7 @@ public/models/          # .glb (Draco/KTX2)
 ## Roadmap (onde estamos)
 
 - [x] **Parte 0** — Fundação & deploy (esqueleto, tokens, Netlify)
-- [ ] **Parte 1** — Canvas & câmera (mundo vazio)
+- [x] **Parte 1** — Canvas & câmera (mundo vazio)
 - [ ] **Parte 2** — Kit do galpão (ambiente estático)
 - [ ] **Parte 3** — Primeiro produto vindo dos dados
 - [ ] **Parte 4** — `/go/[id]` + Modo Lista
