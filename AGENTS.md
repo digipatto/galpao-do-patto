@@ -75,7 +75,7 @@ public/models/          # .glb (Draco/KTX2)
 - [ ] **Parte 6+** — Crescimento (ver plano, seção 11)
 
 ## Stack
-Astro + TypeScript · React 18 (`@astrojs/react`) · React Three Fiber + drei + three ·
+Astro + TypeScript · React 19 (`@astrojs/react`) · React Three Fiber + drei + three ·
 Tailwind CSS v4 (plugin Vite) · Zod · adapter `@astrojs/netlify` · npm.
 **Versões são fixadas (exatas) no `package.json`** — não usar `^` nem `~`.
 

@@ -83,7 +83,7 @@ git push -u origin main
 | Peça | O quê |
 | --- | --- |
 | [Astro](https://astro.build) | base do site, rotas e endpoints |
-| [React 18](https://react.dev) + `@astrojs/react` | a ilha 3D (`client:only="react"`) |
+| [React 19](https://react.dev) + `@astrojs/react` | a ilha 3D (`client:only="react"`) |
 | [R3F](https://r3f.docs.pmnd.rs) + [drei](https://drei.docs.pmnd.rs) + three | motor 3D |
 | [Tailwind CSS v4](https://tailwindcss.com) | interface 2D (plugin do Vite) |
 | [Zod](https://zod.dev) | valida `ofertas.json` no build |
