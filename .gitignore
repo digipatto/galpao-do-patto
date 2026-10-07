@@ -22,3 +22,6 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# skills de agente instaladas localmente (reinstalar com `npx skills add`)
+.agents/

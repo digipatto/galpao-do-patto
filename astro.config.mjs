@@ -1,11 +1,14 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
 import netlify from '@astrojs/netlify';
 import tailwindcss from '@tailwindcss/vite';
 
-// Site estático puro: nenhuma ilha de framework. A única rota que roda no
-// servidor é /go/[id], que declara `export const prerender = false`.
+// React existe pros componentes do Kokonut UI, que são React + Motion.
+// Cada ilha é explícita (client:load / client:visible): o resto da página
+// continua HTML estático, sem runtime.
 export default defineConfig({
+  integrations: [react()],
   adapter: netlify(),
   output: 'static',
   vite: {
