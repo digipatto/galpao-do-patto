@@ -67,33 +67,13 @@
   color-scheme: dark;
 }
 
-/* ---------- 3. Tokens semânticos — TEMA CLARO ---------- */
-/* Vale para quem pede claro no sistema, salvo escuro travado na raiz. */
-@media (prefers-color-scheme: light) {
-  :root:not([data-tema="escuro"]) {
-    --fundo: var(--p-creme);
-    --fundo-elevado: #ffffff;
-    --superficie: #ffffff;
-    --superficie-borda: var(--p-grafite-100);
-
-    --texto: var(--p-grafite-900);
-    --texto-suave: var(--p-grafite-600);
-    --texto-tenue: var(--p-grafite-400);
-
-    --acento: var(--p-ambar-quente);
-    --acento-quente: var(--p-ambar);
-    --holo: #0f9e92;
-    --cta: var(--p-vermelho);
-    --cta-texto: var(--p-creme);
-
-    --brilho-holo: 0 0 18px color-mix(in srgb, var(--holo) 25%, transparent);
-    --brilho-acento: 0 0 16px color-mix(in srgb, var(--acento) 25%, transparent);
-
-    color-scheme: light;
-  }
-}
-
-/* Tema claro travado por atributo (útil pro Modo Lista na Parte 4). */
+/* ---------- 3. Tokens semânticos — TEMA CLARO (opt-in) ---------- */
+/* O galpão NÃO segue o `prefers-color-scheme` do aparelho, de propósito:
+   o mundo 3D é noturno sempre, e uma moldura creme em volta de uma cena
+   escura briga com ela. Escuro é identidade, não preferência.
+   O tema claro existe pra quem pedir explicitamente — pensando no Modo Lista
+   (Parte 4), que é 2D puro e pode querer fundo claro. Liga com:
+   <html data-tema="claro"> */
 :root[data-tema="claro"] {
   --fundo: var(--p-creme);
   --fundo-elevado: #ffffff;
@@ -109,6 +89,9 @@
   --holo: #0f9e92;
   --cta: var(--p-vermelho);
   --cta-texto: var(--p-creme);
+
+  --brilho-holo: 0 0 18px color-mix(in srgb, var(--holo) 25%, transparent);
+  --brilho-acento: 0 0 16px color-mix(in srgb, var(--acento) 25%, transparent);
 
   color-scheme: light;
 }

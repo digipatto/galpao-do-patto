@@ -39,6 +39,10 @@ conforme as ofertas entram.
 9. **Tokens de cor só em `src/styles/tokens.css`.** Nenhum hex de marca espalhado
    em componente, página ou material 3D.
 
+10. **O galpão é escuro, sempre.** Não seguir `prefers-color-scheme`: o mundo 3D é
+    noturno e uma moldura clara briga com a cena. O tema claro existe nos tokens,
+    mas só liga por opt-in (`<html data-tema="claro">`), pensando no Modo Lista.
+
 ## Mapa de pastas
 
 ```

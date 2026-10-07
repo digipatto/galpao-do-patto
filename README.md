@@ -31,14 +31,14 @@ npm run check   # checagem de tipos (astro check)
 Feito uma vez. Depois disso, **todo push na branch principal publica sozinho**
 e todo Pull Request ganha uma URL de preview.
 
-O repositório é **`digipatto/AchadosPatto2`**.
+O repositório é **`digipatto/galpao-do-patto`**.
 
 1. Entre em [app.netlify.com](https://app.netlify.com) e faça login
    (dá pra entrar com a conta do GitHub).
 2. No painel, clique em **Add new site** → **Import an existing project**.
 3. Escolha **Deploy with GitHub** e autorize o Netlify a ler seus repositórios
-   (se ele pedir, use **Only select repositories** e marque só o `AchadosPatto2`).
-4. Na lista, selecione o repositório **`AchadosPatto2`**.
+   (se ele pedir, use **Only select repositories** e marque só o `galpao-do-patto`).
+4. Na lista, selecione o repositório **`galpao-do-patto`**.
 5. Confira as configurações de build — o `netlify.toml` já preenche tudo:
    - **Branch to deploy:** `main`
    - **Build command:** `npm run build`
@@ -59,7 +59,7 @@ A partir daqui: `git push` → o Netlify builda e publica. PR → preview própr
 
 ## Git
 
-O remote `origin` já está apontado pra `https://github.com/digipatto/AchadosPatto2.git`
+O remote `origin` já está apontado pra `https://github.com/digipatto/galpao-do-patto.git`
 e a branch `main` já rastreia `origin/main`. O dia a dia é só:
 
 ```bash
