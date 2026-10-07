@@ -12,6 +12,8 @@ import { esquemaOferta, type OfertaBruta } from './schema';
 export type Oferta = OfertaBruta & {
   /** % de desconto, arredondado. Só existe quando há precoDe. */
   desconto?: number;
+  /** Quanto o visitante deixa de gastar, em reais. Mais concreto que o %. */
+  economia?: number;
   /** Para onde o botão aponta. O link cru nunca sai daqui. */
   href: string;
 };
@@ -59,7 +61,12 @@ function derivar(oferta: OfertaBruta): Oferta {
       ? Math.round((1 - oferta.preco / oferta.precoDe) * 100)
       : undefined;
 
-  return { ...oferta, desconto, href: `/go/${oferta.id}` };
+  const economia =
+    oferta.precoDe !== undefined
+      ? Math.round((oferta.precoDe - oferta.preco) * 100) / 100
+      : undefined;
+
+  return { ...oferta, desconto, economia, href: `/go/${oferta.id}` };
 }
 
 /** Todas as ofertas, da mais nova pra mais antiga. */

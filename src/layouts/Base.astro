@@ -5,10 +5,19 @@ interface Props {
   titulo: string;
   descricao: string;
   secao?: 'achados' | 'blog';
+  /**
+   * Barra fixa de CTA no celular. O visitante vem do Instagram pra pegar um
+   * link; a pior coisa que o site pode fazer é obrigar ele a rolar de volta
+   * pra achar o botão.
+   */
+  ctaFixo?: { href: string; preco: string; titulo: string };
 }
 
-const { titulo, descricao, secao } = Astro.props;
+const { titulo, descricao, secao, ctaFixo } = Astro.props;
 const anoAtual = new Date().getFullYear();
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const imagemSocial = new URL('/og.jpg', Astro.site).href;
 ---
 
 <!doctype html>
@@ -19,11 +28,19 @@ const anoAtual = new Date().getFullYear();
     <title>{titulo}</title>
     <meta name="description" content={descricao} />
     <meta name="theme-color" content="#0b1018" />
+    <link rel="canonical" href={canonical} />
     <meta property="og:title" content={titulo} />
     <meta property="og:description" content={descricao} />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="pt_BR" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="Achados do Patto" />
+    <meta property="og:image" content={imagemSocial} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Achados do Patto — um achado por vez, já filtrado" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={imagemSocial} />
 
     <!-- Clash Display (títulos) e Satoshi (corpo), ambas da Fontshare: uma só
          origem, um só preconnect. Satoshi no lugar da Inter de propósito — a
@@ -73,6 +90,18 @@ const anoAtual = new Date().getFullYear();
         </p>
       </div>
     </footer>
+
+    {
+      ctaFixo && (
+        <div class="barra-cta">
+          <div class="barra-cta-info">
+            <p class="barra-cta-nome">{ctaFixo.titulo}</p>
+            <p class="barra-cta-preco numeros">{ctaFixo.preco}</p>
+          </div>
+          <a class="cta" href={ctaFixo.href} rel="sponsored nofollow noopener">Pegar agora</a>
+        </div>
+      )
+    }
   </body>
 </html>
 
@@ -173,6 +202,7 @@ const anoAtual = new Date().getFullYear();
   .rodape {
     margin-top: var(--e-24);
     padding: var(--e-12) 0 var(--e-16);
+    padding-bottom: calc(var(--e-16) + 5rem);
     border-top: 1px solid var(--borda);
     color: var(--texto-tenue);
     font-size: 0.875rem;
@@ -193,6 +223,71 @@ const anoAtual = new Date().getFullYear();
 
   .rodape a {
     color: var(--marca);
+  }
+
+  /* ---------- barra fixa de CTA (só no celular) ---------- */
+
+  .barra-cta {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    gap: var(--e-3);
+    padding: var(--e-3) var(--gutter);
+    padding-bottom: max(var(--e-3), env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--fundo-elevado) 94%, transparent);
+    backdrop-filter: blur(14px);
+    border-top: 1px solid var(--borda);
+  }
+
+  .barra-cta-info {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .barra-cta-nome {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--texto-tenue);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .barra-cta-preco {
+    margin: 0;
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: 1.125rem;
+    letter-spacing: -0.02em;
+    color: var(--texto);
+  }
+
+  .barra-cta .cta {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    min-height: 3rem;
+    padding: 0 1.25rem;
+    border-radius: 999px;
+    background: var(--cta);
+    color: var(--cta-texto);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  /* No desktop o CTA está sempre perto; a barra só atrapalharia. */
+  @media (min-width: 60rem) {
+    .barra-cta {
+      display: none;
+    }
+  }
+
+  @media (min-width: 60rem) {
+    .rodape {
+      padding-bottom: var(--e-16);
+    }
   }
 
   .rodape .miudo {

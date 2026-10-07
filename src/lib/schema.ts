@@ -60,6 +60,45 @@ export const esquemaOferta = z
       .optional(),
     /** Data de publicação (YYYY-MM-DD). Define a ordem da vitrine. */
     criadoEm: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'use o formato AAAA-MM-DD'),
+
+    /* ---------- prova social ----------
+       Tudo opcional e tudo COPIADO do anúncio, nunca estimado. Campo que você
+       não conferiu, deixe de fora: a página só mostra o que existe. */
+
+    /** Nota do anúncio, de 0 a 5. */
+    avaliacao: z.number().min(0).max(5).optional(),
+    /** Quantas avaliações sustentam a nota. Nota sem volume não prova nada. */
+    avaliacoes: z.number().int().nonnegative().optional(),
+    /** Selo de loja oficial do Mercado Livre. */
+    lojaOficial: z.boolean().optional(),
+    /** Volume de vendas do vendedor, como o anúncio escreve (ex.: "+10 mil"). */
+    vendasVendedor: z.string().min(1).optional(),
+    /** Posição em ranking, como o anúncio escreve. */
+    ranking: z.string().min(1).optional(),
+    /** Frete grátis anunciado. */
+    freteGratis: z.boolean().optional(),
+
+    /** Parcelamento anunciado. */
+    parcelas: z
+      .object({
+        vezes: z.number().int().min(2),
+        valor: z.number().positive(),
+        semJuros: z.boolean().default(true),
+      })
+      .optional(),
+
+    /** Ficha do produto: o que importa pra decidir, não o datasheet inteiro. */
+    especificacoes: z
+      .array(z.object({ rotulo: z.string().min(1), valor: z.string().min(1) }))
+      .max(8)
+      .optional(),
+
+    /** Quando você conferiu preço e anúncio (AAAA-MM-DD). Aparece na página:
+        promessa de preço sem data é promessa vazia. */
+    conferidoEm: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'use o formato AAAA-MM-DD')
+      .optional(),
   })
   .refine((o) => o.precoDe === undefined || o.precoDe > o.preco, {
     message: 'precoDe tem que ser MAIOR que preco — senão não é desconto',

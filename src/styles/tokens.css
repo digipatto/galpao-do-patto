@@ -231,139 +231,15 @@ a {
 }
 
 /* ============================================================
-   7. FiltroFlip — o card que vira
-   Mora aqui porque é uma ilha React: estilo com escopo de .astro
-   não alcança o componente.
+   7. Garimpo — o campo 3D do hero
+   Ilha React com three.js: precisa de estilo global.
    ============================================================ */
 
-.filtro {
-  perspective: 1600px;
+.garimpo {
   width: 100%;
+  height: 100%;
 }
 
-.filtro-gatilho {
+.garimpo canvas {
   display: block;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.filtro-palco {
-  position: relative;
-  display: block;
-  width: 100%;
-  min-height: 19rem;
-  transform-style: preserve-3d;
-  transition: transform 0.55s cubic-bezier(0.77, 0, 0.175, 1);
-}
-
-.filtro[data-virado] .filtro-palco {
-  transform: rotateY(180deg);
-}
-
-.filtro-face {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  padding: var(--e-6);
-  border-radius: var(--raio);
-  background: var(--superficie);
-  box-shadow: var(--sombra);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.filtro-frente {
-  justify-content: flex-end;
-  gap: var(--e-1);
-}
-
-.filtro-numero {
-  font-family: var(--fonte-display);
-  font-weight: 700;
-  font-size: 5rem;
-  line-height: 0.85;
-  letter-spacing: -0.04em;
-  color: var(--marca);
-}
-
-.filtro-titulo {
-  font-family: var(--fonte-display);
-  font-weight: 600;
-  font-size: 1.25rem;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-  color: var(--texto);
-}
-
-.filtro-dica {
-  margin-top: var(--e-3);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--texto-tenue);
-}
-
-.filtro-gatilho:hover .filtro-dica {
-  color: var(--marca);
-}
-
-.filtro-verso {
-  transform: rotateY(180deg);
-  justify-content: center;
-}
-
-.filtro-lista {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: criterio;
-  display: grid;
-  gap: var(--e-3);
-}
-
-.filtro-lista li {
-  counter-increment: criterio;
-  display: grid;
-  gap: 0.1rem;
-  padding-left: 1.6rem;
-  position: relative;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--texto-suave);
-}
-
-/* O número é informação aqui: é a ORDEM do filtro, não enfeite de seção. */
-.filtro-lista li::before {
-  content: counter(criterio);
-  position: absolute;
-  left: 0;
-  top: 0.05rem;
-  width: 1.1rem;
-  height: 1.1rem;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--marca) 22%, transparent);
-  color: var(--marca);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.filtro-lista strong {
-  color: var(--texto);
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .filtro-palco {
-    transition: none;
-  }
 }

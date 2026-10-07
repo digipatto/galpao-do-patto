@@ -15,8 +15,10 @@
 
 Site de links de afiliado do Mercado Livre. Duas seções:
 
-- **Achados** (`/`) — o achado da vez em destaque; anteriores em grade abaixo.
-  Um toque e vai pro Mercado Livre.
+- **Achados** (`/`) — **página de vendas**, não vitrine: herói com o campo 3D e
+  a oferta acima da dobra, faixa de confiança, problema, o filtro em 4 passos,
+  o produto em detalhe, FAQ e fecho com reversão de risco. Anteriores em grade
+  quando houver mais de um. Um toque e vai pro Mercado Livre.
 - **Blog** (`/blog`) — artigos, pra trazer tráfego do Google.
 
 Simples, rápido no celular, com o link a um toque de distância.
@@ -57,7 +59,20 @@ O diferencial é a **curadoria**: poucos achados, muito filtro.
 
 10. **Construir parte por parte.** Não antecipar escopo futuro.
 
-11. **Design passa pelo Impeccable.** Antes de editar UI, ler
+11. **Conversão passa pelo landing-page-generator.** A home segue PAS
+    (público já conhece o problema: desconto falso). Uma meta, um CTA — todo
+    botão leva pro mesmo lugar. Auditar com os scripts em
+    `.claude/skills/landing-page-generator/scripts/` usando `python -X utf8`
+    (sem isso quebra no Windows). Os scripts procuram termos em inglês e
+    posição de caractere no HTML: tratar "How It Works", "risk reversal",
+    métricas e "above the fold" como falso-negativo, conferindo no print.
+
+12. **Nada de prova social inventada.** Nota, avaliações, ranking, vendas do
+    vendedor e parcelamento são copiados do anúncio e vão pro `ofertas.json`.
+    Campo não conferido fica de fora — a página só mostra o que existe. O
+    `conferidoEm` aparece na página: promessa de preço sem data é vazia.
+
+13. **Design passa pelo Impeccable.** Antes de editar UI, ler
     `.claude/skills/impeccable/reference/craft-floor.md`. Depois de editar,
     rodar `.claude/skills/impeccable/scripts/impeccable detect --json <arquivos>`.
     Proibições que já me pegaram: kicker/sobrancelha acima de heading, grade de
@@ -75,7 +90,9 @@ src/
   content.config.ts         # schema do frontmatter do blog
   layouts/Base.astro        # cabeçalho, rodapé, <head>
   components/CardProduto.astro
-  pages/index.astro         # vitrine
+  components/Garimpo.tsx    # campo 3D do herói (three.js, ilha client:idle)
+  pages/index.astro         # a página de vendas
+  pages/og.astro            # gerador da imagem de compartilhamento
   pages/go/[id].ts          # 302 -> linkAfiliado (roda no servidor)
   pages/blog/index.astro    # listagem
   pages/blog/[...slug].astro # artigo
@@ -105,8 +122,9 @@ Frontmatter: `titulo`, `resumo`, `publicadoEm`, `tags?`, `rascunho?`.
 
 ## Stack
 
-Astro + TypeScript · React 19 (só pras ilhas) · Tailwind CSS v4 (plugin Vite) ·
-shadcn + Kokonut UI · Motion · Zod · adapter `@astrojs/netlify` · npm.
+Astro + TypeScript · React 19 (só pras ilhas) · three.js · Tailwind CSS v4
+(plugin Vite) · shadcn + Kokonut UI · Motion · Zod · adapter
+`@astrojs/netlify` · npm.
 **Versões são fixadas (exatas) no `package.json`** — não usar `^` nem `~`.
 O `shadcn add` traz faixas com `^`: fixar depois de instalar.
 
@@ -117,3 +135,20 @@ laranja do bico `#E8913F` (assinatura) · vermelho da gravata `#D92D2D` (só CTA
 creme da camisa `#F5F1E8`.
 Display: **Clash Display** · Corpo: **Satoshi**. Ambas da Fontshare, uma origem
 só. Nada de Inter — o detector marca como fonte supergasta.
+
+## Imagem de compartilhamento
+
+`/og` é um gerador, não página de visitante (`noindex`). Pra regerar depois de
+mexer na marca: `npm run build`, servir `dist/`, tirar print de `/og` em
+1200×630 e salvar como `public/og.jpg`.
+
+O `astro.config.mjs` lê `process.env.URL` (o Netlify injeta no build) pra montar
+`canonical` e `og:image` absolutos. Local fica `localhost` — é esperado.
+
+## O campo 3D do herói
+
+`Garimpo.tsx` desenha o posicionamento: muitas caixas apagadas (o descarte) e
+as poucas acesas (o que passou). `aprovados` vem do tamanho do catálogo, então
+cresce sozinho. Custa ~129 KB gzip de three.js — por isso é `client:idle`,
+`aria-hidden`, pausa fora da tela, respeita `prefers-reduced-motion` e some
+inteiro quando não há WebGL.

@@ -1,0 +1,118 @@
+---
+import '../styles/tokens.css';
+
+/**
+ * Gerador da imagem de compartilhamento (1200×630).
+ *
+ * Não é uma página pro visitante: existe pra ser fotografada e virar
+ * public/og.jpg. Reaproveita os tokens da marca, então a prévia no Instagram e
+ * no WhatsApp nunca sai do mundo visual do site.
+ *
+ * Pra regerar depois de mudar a marca:
+ *   npm run build
+ *   (servir dist/) e tirar um print de /og em 1200×630
+ */
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Imagem de compartilhamento — Achados do Patto</title>
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500,700&display=swap"
+    />
+  </head>
+  <body>
+    <div class="cartao">
+      <div class="texto">
+        <p class="marca">Achados <b>do Patto</b></p>
+        <h1>Um achado por vez, já filtrado.</h1>
+        <p class="sub">
+          Histórico de preço, reputação do vendedor e avaliações reais —
+          conferidos antes de publicar.
+        </p>
+        <p class="arroba">@achadoseofertas.patto</p>
+      </div>
+      <img class="patto" src="/marca/patto.webp" alt="" width="361" height="656" />
+    </div>
+  </body>
+</html>
+
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .cartao {
+    width: 1200px;
+    height: 630px;
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    padding: 0 4.5rem;
+    background:
+      radial-gradient(ellipse 70% 90% at 78% 50%, color-mix(in srgb, var(--terno) 34%, transparent), transparent 70%),
+      var(--fundo);
+    box-sizing: border-box;
+  }
+
+  .texto {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .marca {
+    margin: 0 0 1.5rem;
+    font-family: var(--fonte-display);
+    font-weight: 600;
+    font-size: 1.75rem;
+    letter-spacing: -0.02em;
+    color: var(--texto);
+  }
+  .marca b {
+    color: var(--marca);
+    font-weight: 600;
+  }
+
+  h1 {
+    margin: 0 0 1.25rem;
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: 4.25rem;
+    line-height: 1;
+    letter-spacing: -0.035em;
+    color: var(--texto);
+  }
+
+  .sub {
+    margin: 0 0 2rem;
+    max-width: 30ch;
+    font-size: 1.375rem;
+    line-height: 1.45;
+    color: var(--texto-suave);
+  }
+
+  .arroba {
+    display: inline-block;
+    margin: 0;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--marca) 18%, transparent);
+    color: var(--marca);
+    font-size: 1.0625rem;
+    font-weight: 600;
+  }
+
+  .patto {
+    flex: 0 0 auto;
+    width: 320px;
+    height: auto;
+    border-radius: 20px;
+    box-shadow: 0 30px 70px -24px rgb(0 0 0 / 0.8);
+  }
+</style>

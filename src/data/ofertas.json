@@ -8,6 +8,19 @@
     "loja": "Iplace",
     "linkAfiliado": "https://meli.la/2LqYDPM",
     "img": "/produtos/iphone-18-pro-2tb-bordo.webp",
-    "criadoEm": "2026-10-07"
+    "criadoEm": "2026-10-07",
+    "conferidoEm": "2026-10-07",
+    "avaliacao": 5,
+    "avaliacoes": 238,
+    "lojaOficial": true,
+    "vendasVendedor": "+10 mil",
+    "ranking": "9º mais vendido em Celulares e Smartphones Apple",
+    "freteGratis": true,
+    "parcelas": { "vezes": 10, "valor": 2099.9, "semJuros": true },
+    "especificacoes": [
+      { "rotulo": "Memória interna", "valor": "2 TB" },
+      { "rotulo": "Cor", "valor": "Bordô (Borgonha)" },
+      { "rotulo": "Condição", "valor": "Novo, distribuidor autorizado" }
+    ]
   }
 ]
