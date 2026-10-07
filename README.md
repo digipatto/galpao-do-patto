@@ -31,45 +31,48 @@ npm run check   # checagem de tipos (astro check)
 Feito uma vez. Depois disso, **todo push na branch principal publica sozinho**
 e todo Pull Request ganha uma URL de preview.
 
-1. Garanta que o repositório está no GitHub (veja a seção abaixo se ainda não estiver).
-2. Entre em [app.netlify.com](https://app.netlify.com) e faça login
+O repositório é **`digipatto/AchadosPatto2`**.
+
+1. Entre em [app.netlify.com](https://app.netlify.com) e faça login
    (dá pra entrar com a conta do GitHub).
-3. No painel, clique em **Add new site** → **Import an existing project**.
-4. Escolha **Deploy with GitHub** e autorize o Netlify a ler seus repositórios
-   (se ele pedir, use **Only select repositories** e marque só o `galpao-do-patto`).
-5. Na lista, selecione o repositório **`galpao-do-patto`**.
-6. Confira as configurações de build — o `netlify.toml` já preenche tudo:
+2. No painel, clique em **Add new site** → **Import an existing project**.
+3. Escolha **Deploy with GitHub** e autorize o Netlify a ler seus repositórios
+   (se ele pedir, use **Only select repositories** e marque só o `AchadosPatto2`).
+4. Na lista, selecione o repositório **`AchadosPatto2`**.
+5. Confira as configurações de build — o `netlify.toml` já preenche tudo:
    - **Branch to deploy:** `main`
    - **Build command:** `npm run build`
    - **Publish directory:** `dist`
    Não precisa mexer em nada aqui.
-7. Clique em **Deploy site** (ou **Deploy `galpao-do-patto`**).
-8. Espere o build terminar (primeira vez: 1–3 min). A URL sai como
+6. Clique em **Deploy site**.
+7. Espere o build terminar (primeira vez: 1–3 min). A URL sai como
    `https://<nome-aleatorio>.netlify.app`.
-9. Opcional, mas recomendado: **Site configuration** → **Change site name** pra deixar
-   a URL legível (ex.: `galpao-do-patto.netlify.app`).
-10. Abra a URL **no celular** — é de lá que vem o público. Esse é o teste de aceite
-    de toda parte do roadmap.
+8. Recomendado: **Site configuration** → **Change site name** pra deixar a URL
+   legível (ex.: `galpao-do-patto.netlify.app` — o nome do site no Netlify é
+   independente do nome do repositório).
+9. Abra a URL **no celular** — é de lá que vem o público. Esse é o teste de aceite
+   de toda parte do roadmap.
 
 A partir daqui: `git push` → o Netlify builda e publica. PR → preview próprio.
 
 ---
 
-## Criar o repositório no GitHub (se ainda não existe)
+## Git
 
-Com o [GitHub CLI](https://cli.github.com) instalado e autenticado:
+O remote `origin` já está apontado pra `https://github.com/digipatto/AchadosPatto2.git`
+e a branch `main` já rastreia `origin/main`. O dia a dia é só:
 
 ```bash
-gh repo create galpao-do-patto --private --source=. --remote=origin --push
+git add -A
+git commit -m "Parte N: ..."
+git push
 ```
 
-Ou na mão, pela interface: crie um repositório **vazio** chamado
-`galpao-do-patto` em [github.com/new](https://github.com/new)
-(sem README, sem .gitignore, sem licença) e depois:
+Se algum dia quiser mover pra outro repositório, **não** use `git remote add`
+(ele recusa porque `origin` já existe) — troque a URL:
 
 ```bash
-git remote add origin https://github.com/<SEU-USUARIO>/galpao-do-patto.git
-git branch -M main
+git remote set-url origin https://github.com/digipatto/<OUTRO-REPO>.git
 git push -u origin main
 ```
 
