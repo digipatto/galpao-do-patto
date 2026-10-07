@@ -1,0 +1,182 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+const artigos = (await getCollection('blog', ({ data }) => !data.rascunho)).sort(
+  (a, b) => b.data.publicadoEm.getTime() - a.data.publicadoEm.getTime(),
+);
+
+// timeZone UTC de propósito: "2026-10-06" no frontmatter vira meia-noite UTC,
+// e formatar em horário de Brasília (UTC-3) jogaria a data pro dia anterior.
+const formatarData = (data: Date) =>
+  data.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+---
+
+<Base
+  titulo="Blog — O Galpão do Patto"
+  descricao="Comparativos, guias de compra e o que o Patto aprendeu garimpando o Mercado Livre."
+  secao="blog"
+>
+  <section class="abertura">
+    <div class="faixa">
+      <h1>Blog</h1>
+      <p>Comparativos, guias de compra e o que eu aprendi garimpando.</p>
+    </div>
+  </section>
+
+  <section class="lista">
+    <div class="faixa">
+      {
+        artigos.length === 0 ? (
+          <div class="vazia">
+            <p class="vazia-titulo">Nenhum artigo publicado ainda.</p>
+            <p>
+              O primeiro entra como um arquivo <code>.md</code> em
+              <code>src/content/blog/</code>.
+            </p>
+          </div>
+        ) : (
+          <ul>
+            {artigos.map((artigo) => (
+              <li>
+                <article class="item">
+                  <time datetime={artigo.data.publicadoEm.toISOString()}>
+                    {formatarData(artigo.data.publicadoEm)}
+                  </time>
+                  <h2>
+                    <a href={`/blog/${artigo.id}`}>{artigo.data.titulo}</a>
+                  </h2>
+                  <p class="resumo">{artigo.data.resumo}</p>
+                  {artigo.data.tags.length > 0 && (
+                    <ul class="tags">
+                      {artigo.data.tags.map((tag) => (
+                        <li>{tag}</li>
+                      ))}
+                    </ul>
+                  )}
+                </article>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </section>
+</Base>
+
+<style>
+  .faixa {
+    width: min(100% - calc(var(--gutter) * 2), 52rem);
+    margin-inline: auto;
+  }
+
+  .abertura {
+    padding: 2.5rem 0 1.5rem;
+  }
+
+  .abertura h1 {
+    margin: 0 0 0.5rem;
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: clamp(1.875rem, 7vw, 3rem);
+    letter-spacing: -0.02em;
+    color: var(--texto);
+  }
+
+  .abertura p {
+    margin: 0;
+    max-width: 44ch;
+    font-size: clamp(0.9375rem, 3.5vw, 1.0625rem);
+    line-height: 1.55;
+    color: var(--texto-suave);
+    text-wrap: pretty;
+  }
+
+  .lista ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .item {
+    padding: 1.25rem 0;
+    border-top: 1px solid var(--superficie-borda);
+  }
+
+  .item time {
+    font-size: 0.8125rem;
+    color: var(--texto-tenue);
+  }
+
+  .item h2 {
+    margin: 0.3rem 0 0.4rem;
+    font-family: var(--fonte-display);
+    font-weight: 600;
+    font-size: clamp(1.1875rem, 4.5vw, 1.5rem);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .item h2 a {
+    color: var(--texto);
+    text-decoration: none;
+  }
+  .item h2 a:hover {
+    color: var(--acento);
+  }
+
+  .resumo {
+    margin: 0;
+    max-width: 60ch;
+    line-height: 1.55;
+    color: var(--texto-suave);
+    text-wrap: pretty;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-top: 0.7rem;
+  }
+
+  .tags li {
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--superficie-borda);
+    font-size: 0.75rem;
+    color: var(--texto-tenue);
+  }
+
+  .vazia {
+    padding: 3rem 1.25rem;
+    text-align: center;
+    border: 1px dashed var(--superficie-borda);
+    border-radius: var(--raio);
+    color: var(--texto-tenue);
+  }
+
+  .vazia p {
+    margin: 0 0 0.4rem;
+  }
+
+  .vazia-titulo {
+    font-family: var(--fonte-display);
+    font-weight: 600;
+    font-size: 1.125rem;
+    color: var(--texto);
+  }
+
+  code {
+    font-size: 0.875em;
+    padding: 0.1em 0.35em;
+    border-radius: var(--raio-sm);
+    background: var(--superficie);
+    color: var(--holo);
+  }
+</style>

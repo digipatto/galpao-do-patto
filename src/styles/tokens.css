@@ -55,16 +55,17 @@
   --brilho-holo: 0 0 24px color-mix(in srgb, var(--holo) 45%, transparent);
   --brilho-acento: 0 0 20px color-mix(in srgb, var(--acento) 35%, transparent);
 
-  /* superfícies do mundo 3D — lidas pelo useCorToken, nunca por CSS.
-     Não têm variante clara: o galpão é noturno sempre (regra 10). */
-  --mundo-piso: var(--p-azul-noite);
-  --mundo-metal: var(--p-grafite-700);
-  --mundo-metal-claro: var(--p-grafite-600);
-  /* superfície que pega luz (tábua da prateleira): é o contraste que faz o
-     rack aparecer contra o piso escuro */
-  --mundo-metal-topo: var(--p-grafite-400);
-  --mundo-vidro: var(--p-ciano);
-  --mundo-luz: var(--p-creme);
+  /* nicho — cor de etiqueta e de fundo do card sem foto.
+     Metadado: serve pra reconhecer e filtrar, não divide o site. */
+  --nicho-eletronicos: #4c8dff;
+  --nicho-casa: #ff9f6e;
+  --nicho-beleza: #ff7ab8;
+  --nicho-informatica: #7c6cff;
+  --nicho-ferramentas: #f2b544;
+  --nicho-automotivo: #5ec8c0;
+  --nicho-pet: #9ad36a;
+  --nicho-fitness: #ff6b6b;
+  --nicho-curiosos: #c6a4ff;
 
   /* tipografia */
   --fonte-display: "Clash Display", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;

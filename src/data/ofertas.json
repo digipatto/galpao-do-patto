@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "id": "fone-bluetooth-anc",
+    "titulo": "Fone Bluetooth com cancelamento de ruído",
+    "preco": 189.9,
+    "precoDe": 329.9,
+    "nicho": "eletronicos",
+    "loja": "Mercado Livre",
+    "full": true,
+    "linkAfiliado": "https://www.mercadolivre.com.br/",
+    "criadoEm": "2026-10-06"
+  },
+  {
+    "id": "air-fryer-5l",
+    "titulo": "Air fryer 5L com painel digital",
+    "preco": 279,
+    "precoDe": 399,
+    "nicho": "casa",
+    "full": true,
+    "linkAfiliado": "https://www.mercadolivre.com.br/",
+    "criadoEm": "2026-10-04"
+  },
+  {
+    "id": "teclado-mecanico-compacto",
+    "titulo": "Teclado mecânico compacto 60% RGB",
+    "preco": 219.9,
+    "nicho": "informatica",
+    "loja": "Mercado Livre",
+    "linkAfiliado": "https://www.mercadolivre.com.br/",
+    "criadoEm": "2026-10-01"
+  }
+]

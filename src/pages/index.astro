@@ -1,103 +1,131 @@
 ---
-import '../styles/tokens.css';
-import Mundo from '../three/Mundo';
+import Base from '../layouts/Base.astro';
+import CardProduto from '../components/CardProduto.astro';
+import { listarOfertas } from '../lib/ofertas';
 
-// Parte 1: a ilha 3D entra com client:only="react" — WebGL nunca no SSR.
-// HUD, card e Modo Lista são das Partes 3 e 4.
+// Se o JSON tiver dado inválido, isto estoura aqui e o build para — de
+// propósito. Melhor falhar no build que publicar card quebrado.
+const ofertas = listarOfertas();
 ---
 
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>O Galpão do Patto</title>
-    <meta
-      name="description"
-      content="O centro de distribuição de achados do Patto. Em construção."
-    />
+<Base
+  titulo="O Galpão do Patto — achados do Mercado Livre"
+  descricao="Os achados que o Patto garimpou no Mercado Livre. Preço, desconto e o link direto, sem enrolação."
+  secao="achados"
+>
+  <section class="abertura">
+    <div class="faixa">
+      <h1>Os achados do Patto</h1>
+      <p>
+        Garimpo no Mercado Livre e deixo aqui o que vale a pena. Toca no card e
+        vai direto pro produto.
+      </p>
+    </div>
+  </section>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap"
-    />
-    <!-- Clash Display (display da marca) — Fontshare. Fallback: Space Grotesk. -->
-    <link
-      rel="stylesheet"
-      href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap"
-    />
-  </head>
-
-  <body>
-    <main class="palco">
-      <!--
-        Fica atrás do <Canvas> e some debaixo dele quando a ilha monta.
-        Serve de estado de carregamento e evita tela preta no primeiro frame.
-        O fallback de verdade pra quem não tem WebGL é o Modo Lista, na Parte 4.
-      -->
-      <div class="cortina" aria-hidden="true">
-        <p class="marca">O Galpão do Patto</p>
-      </div>
-
-      <Mundo client:only="react" />
-
-      <noscript>
-        <div class="cortina cortina--aviso">
-          <p class="marca">O Galpão do Patto</p>
-          <p class="aviso">
-            O galpão precisa de JavaScript pra abrir. Em breve haverá um modo
-            lista com todas as ofertas.
-          </p>
-        </div>
-      </noscript>
-    </main>
-  </body>
-</html>
+  <section class="vitrine">
+    <div class="faixa">
+      {
+        ofertas.length === 0 ? (
+          <div class="vazia">
+            <p class="vazia-titulo">O galpão ainda está vazio.</p>
+            <p>
+              O primeiro achado entra como uma linha em
+              <code>src/data/ofertas.json</code>.
+            </p>
+          </div>
+        ) : (
+          <>
+            <p class="contagem">
+              {ofertas.length} {ofertas.length === 1 ? 'achado' : 'achados'}
+            </p>
+            <div class="grade">
+              {ofertas.map((oferta) => <CardProduto oferta={oferta} />)}
+            </div>
+          </>
+        )
+      }
+    </div>
+  </section>
+</Base>
 
 <style>
-  .palco {
-    position: relative;
-    width: 100%;
-    height: 100svh;
-    overflow: hidden;
-    background-color: var(--fundo);
+  .faixa {
+    width: min(100% - calc(var(--gutter) * 2), 68rem);
+    margin-inline: auto;
   }
 
-  .cortina {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 2rem var(--gutter);
-    text-align: center;
-    background-color: var(--fundo);
+  .abertura {
+    padding: 2.5rem 0 1.75rem;
   }
 
-  .cortina--aviso {
-    /* Acima do canvas: sem JS a ilha nunca monta, então o aviso tem que aparecer. */
-    z-index: 2;
-  }
-
-  .marca {
-    margin: 0;
+  .abertura h1 {
+    margin: 0 0 0.6rem;
     font-family: var(--fonte-display);
     font-weight: 700;
-    font-size: clamp(1.5rem, 6vw, 2.5rem);
+    font-size: clamp(1.875rem, 7vw, 3rem);
+    line-height: 1.05;
     letter-spacing: -0.02em;
+    color: var(--texto);
+    text-wrap: balance;
+  }
+
+  .abertura p {
+    margin: 0;
+    max-width: 44ch;
+    font-size: clamp(0.9375rem, 3.5vw, 1.0625rem);
+    line-height: 1.55;
+    color: var(--texto-suave);
+    text-wrap: pretty;
+  }
+
+  .contagem {
+    margin: 0 0 0.875rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--texto-tenue);
+  }
+
+  /* Duas colunas no celular: é como o olho varre vitrine. */
+  .grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+    gap: 0.875rem;
+  }
+
+  @media (min-width: 48rem) {
+    .grade {
+      grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+      gap: 1.25rem;
+    }
+  }
+
+  .vazia {
+    padding: 3rem 1.25rem;
+    text-align: center;
+    border: 1px dashed var(--superficie-borda);
+    border-radius: var(--raio);
+    color: var(--texto-tenue);
+  }
+
+  .vazia p {
+    margin: 0 0 0.4rem;
+  }
+
+  .vazia-titulo {
+    font-family: var(--fonte-display);
+    font-weight: 600;
+    font-size: 1.125rem;
     color: var(--texto);
   }
 
-  .aviso {
-    margin: 0;
-    max-width: 38ch;
-    font-size: 0.9375rem;
-    line-height: 1.5;
-    color: var(--texto-tenue);
-    text-wrap: pretty;
+  code {
+    font-size: 0.875em;
+    padding: 0.1em 0.35em;
+    border-radius: var(--raio-sm);
+    background: var(--superficie);
+    color: var(--holo);
   }
 </style>

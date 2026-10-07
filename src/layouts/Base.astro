@@ -1,0 +1,165 @@
+---
+import '../styles/tokens.css';
+
+interface Props {
+  titulo: string;
+  descricao: string;
+  /** Deixa o link do cabeçalho marcado. */
+  secao?: 'achados' | 'blog';
+}
+
+const { titulo, descricao, secao } = Astro.props;
+const anoAtual = new Date().getFullYear();
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title>
+    <meta name="description" content={descricao} />
+    <meta property="og:title" content={titulo} />
+    <meta property="og:description" content={descricao} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <!-- Clash Display (display da marca) — Fontshare. Fallback: Space Grotesk. -->
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap"
+    />
+  </head>
+
+  <body>
+    <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+    <header class="cabecalho">
+      <div class="faixa">
+        <a class="marca" href="/">
+          O Galpão <span>do Patto</span>
+        </a>
+        <nav class="navegacao" aria-label="Seções">
+          <a href="/" aria-current={secao === 'achados' ? 'page' : undefined}>Achados</a>
+          <a href="/blog" aria-current={secao === 'blog' ? 'page' : undefined}>Blog</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="conteudo">
+      <slot />
+    </main>
+
+    <footer class="rodape">
+      <div class="faixa">
+        <p>
+          O Galpão do Patto — achados do Mercado Livre, garimpados a dedo.
+        </p>
+        <p class="miudo">
+          Alguns links são de afiliado: se você comprar por eles, o Patto ganha
+          uma comissão sem custo nenhum pra você. © {anoAtual}
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .pular {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    padding: 0.75rem 1rem;
+    background: var(--acento);
+    color: var(--p-grafite-900);
+    font-weight: 600;
+    border-radius: 0 0 var(--raio-sm) 0;
+    z-index: 10;
+  }
+  .pular:focus {
+    left: 0;
+  }
+
+  .faixa {
+    width: min(100% - calc(var(--gutter) * 2), 68rem);
+    margin-inline: auto;
+  }
+
+  .cabecalho {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: color-mix(in srgb, var(--fundo) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--superficie-borda);
+  }
+
+  .cabecalho .faixa {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 3.75rem;
+  }
+
+  .marca {
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: 1.125rem;
+    letter-spacing: -0.01em;
+    color: var(--texto);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .marca span {
+    color: var(--acento);
+  }
+
+  .navegacao {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .navegacao a {
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--texto-tenue);
+    text-decoration: none;
+  }
+  .navegacao a:hover {
+    color: var(--texto);
+    background: var(--superficie);
+  }
+  .navegacao a[aria-current='page'] {
+    color: var(--texto);
+    background: var(--superficie);
+  }
+
+  main {
+    min-height: 60svh;
+  }
+
+  .rodape {
+    margin-top: 4rem;
+    padding: 2rem 0 3rem;
+    border-top: 1px solid var(--superficie-borda);
+    color: var(--texto-tenue);
+    font-size: 0.875rem;
+  }
+  .rodape p {
+    margin: 0 0 0.5rem;
+  }
+  .rodape .miudo {
+    font-size: 0.8125rem;
+    max-width: 48ch;
+    text-wrap: pretty;
+  }
+</style>

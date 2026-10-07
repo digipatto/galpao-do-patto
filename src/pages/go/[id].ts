@@ -1,11 +1,27 @@
-// TODO Parte 4 — vira o redirect 302 pro linkAfiliado da oferta.
-//
-// Nesta parte o arquivo é só um marcador de rota: nenhuma lógica, nenhum handler.
-// O `prerender = false` abaixo já entra agora por necessidade técnica — sem ele o
-// build estático falha (`GetStaticPathsRequired`), porque uma rota dinâmica
-// pré-renderizada exige `getStaticPaths()`. Mantendo a rota on-demand, ela só
-// existe no servidor e hoje responde 404.
-//
-// Na Parte 4 entra aqui um `GET` que resolve o `id` em src/data/ofertas.json e
-// responde 302 pro linkAfiliado. É o ÚNICO caminho pro Mercado Livre.
+import type { APIRoute } from 'astro';
+import { acharOferta } from '../../lib/ofertas';
+
+/**
+ * O único caminho do site pro Mercado Livre.
+ *
+ * Por que não botar o link de afiliado direto no card:
+ *  - dá pra trocar o destino sem reeditar post nenhum;
+ *  - dá pra contar clique aqui depois, sem mexer no resto;
+ *  - o link cru nunca aparece na página.
+ *
+ * Roda no servidor (não é pré-renderizado) pra responder 302 de verdade.
+ */
 export const prerender = false;
+
+export const GET: APIRoute = ({ params, redirect }) => {
+  const id = params.id;
+  const oferta = id ? acharOferta(id) : undefined;
+
+  // Id que não existe (link velho, erro de digitação) volta pra vitrine em vez
+  // de dar 404 na cara de quem veio do Instagram.
+  if (!oferta) {
+    return redirect('/', 302);
+  }
+
+  return redirect(oferta.linkAfiliado, 302);
+};

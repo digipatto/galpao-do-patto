@@ -1,3 +1,14 @@
+> ⚠️ **DOCUMENTO SUPERADO — 07/10/2026.**
+> Este plano descreve um site-jogo 3D (galpão isométrico em React Three Fiber).
+> Essa direção foi abandonada: com placeholders a cena parecia um diagrama, não
+> um jogo, e o 3D atrapalhava o que importa — achar o produto e pegar o link.
+> O produto virou um site simples: vitrine de achados + blog.
+> **A fonte de verdade agora é o `CLAUDE.md`** (= `AGENTS.md`).
+> Guardo este arquivo como registro do raciocínio; o código 3D está no
+> histórico do git, nos commits até `c3ecde9`.
+
+---
+
 # O Galpão do Patto — Plano Mestre
 
 > **Produto:** um site-jogo. Um **mundo único** 3D — um galpão logístico futurista onde o Patto (pato de terno) toca a operação. Cada link de afiliado gerado vira **mais um item no galpão**. O armazém cresce conforme você posta.

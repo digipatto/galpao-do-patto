@@ -1,85 +1,103 @@
 # O Galpão do Patto — convenções do projeto
 
-> Fonte de verdade da arquitetura: `plano-galpao-do-patto.md` na raiz.
-> Este arquivo é o resumo operacional — as regras que não se quebram.
 > `CLAUDE.md` e `AGENTS.md` têm o MESMO conteúdo: editou um, replique no outro.
+>
+> ⚠️ **`plano-galpao-do-patto.md` está superado.** Ele descreve uma versão
+> anterior do produto — um site-jogo 3D (galpão isométrico em React Three
+> Fiber). Essa direção foi abandonada em 07/10/2026: com placeholders a cena
+> parecia um diagrama, não um jogo, e o 3D atrapalhava o que importa (achar o
+> produto e pegar o link). O código 3D está no histórico do git, nos commits
+> até `c3ecde9`. **Este arquivo é a fonte de verdade agora.**
 
 ## O que é
-Site-jogo 3D: um **mundo único** (galpão logístico futurista) de links de afiliado
-do Mercado Livre. Cada oferta nova vira mais um item no galpão. O armazém cresce
-conforme as ofertas entram.
+
+Site de links de afiliado do Mercado Livre. Duas seções:
+
+- **Achados** (`/`) — vitrine de produtos. Toca no card, vai pro Mercado Livre.
+- **Blog** (`/blog`) — artigos, pra trazer tráfego do Google.
+
+Simples, rápido no celular, com o link a um toque de distância.
 
 ## Regras inquebráveis
 
-1. **Mundo único, 100% data-driven.** A cena 3D **nunca** hardcoda produto.
-   Tudo vem de `src/data/ofertas.json`. Adicionar oferta = editar dados, nunca o 3D.
+1. **`src/data/ofertas.json` é a fonte única dos produtos.** Adicionar achado =
+   uma entrada no JSON. Nenhuma página lê o arquivo direto: tudo passa por
+   `src/lib/ofertas.ts`, pra validação nunca ser contornada.
 
-2. **A ilha 3D roda só no cliente.** O `<Canvas>` do R3F é montado com
-   `client:only="react"`. WebGL **nunca** no SSR.
+2. **Link de afiliado só via `/go/[id]`.** O `linkAfiliado` nunca aparece no
+   HTML. O redirect é 302, e é onde a contagem de cliques vai entrar um dia.
 
-3. **Link de afiliado só via `/go/[id]`.** Nunca expor o link cru na UI nem na cena.
+3. **Dado inválido derruba o build.** Zod valida `ofertas.json` e o frontmatter
+   do blog. Melhor falhar no build que publicar card quebrado.
 
-4. **Sempre existe um Modo Lista.** Fallback acessível, sem WebGL, com os mesmos
-   botões `/go`. A comissão não depende do 3D funcionar.
+4. **Zero JavaScript por padrão.** O site é HTML + CSS estático. Se um recurso
+   exigir interatividade, entra como ilha pontual — nunca um framework na
+   página inteira.
 
-5. **Performance mobile-first.** `frameloop="demand"`, `dpr={[1, 2]}`,
-   `InstancedMesh` nas peças repetidas, modelos `.glb` com Draco, texturas KTX2.
-   Orçamento: ≤ 2–3 MB no primeiro load, 30+ fps em celular mediano.
+5. **Mobile-first.** O público vem do Instagram, no celular. Vitrine em duas
+   colunas, preço legível, CTA visível sem rolar.
 
-6. **Posição no mundo é determinística.** Ordem de criação → vaga fixa
-   (`layout(index)`). Mesma lista → mesmo mapa. O galpão só **cresce na borda**:
-   produto novo entra na próxima vaga livre, abre corredor novo quando enche.
+6. **`nicho` é metadado, não divide o site.** Serve pra cor da etiqueta e pra
+   filtro. Vitrine única, sempre.
 
-7. **`nicho` é metadado, não divide o mundo.** Serve pra cor de etiqueta/sinalização
-   e filtro de busca. Mundo único, sempre.
+7. **Tokens de cor só em `src/styles/tokens.css`.** Nenhum hex espalhado em
+   componente ou página.
 
-8. **Construir parte por parte.** Não antecipar escopo futuro. Cada parte entrega,
-   testa no celular, aprova, e só então vem a próxima.
+8. **O site é escuro, sempre.** Não seguir `prefers-color-scheme`. O tema claro
+   existe nos tokens mas só liga por opt-in (`<html data-tema="claro">`).
 
-9. **Tokens de cor só em `src/styles/tokens.css`.** Nenhum hex de marca espalhado
-   em componente, página ou material 3D.
+9. **Um artigo = um `.md` em `src/content/blog/`.** O nome do arquivo vira a
+   URL. `rascunho: true` tira da listagem e do build.
 
-10. **O galpão é escuro, sempre.** Não seguir `prefers-color-scheme`: o mundo 3D é
-    noturno e uma moldura clara briga com a cena. O tema claro existe nos tokens,
-    mas só liga por opt-in (`<html data-tema="claro">`), pensando no Modo Lista.
+10. **Construir parte por parte.** Não antecipar escopo futuro.
 
 ## Mapa de pastas
 
 ```
 src/
-  data/ofertas.json     # FONTE ÚNICA DA VERDADE
-  lib/schema.ts         # Zod: valida cada oferta no build
-  lib/layout.ts         # índice -> vaga determinística no galpão
-  lib/ofertas.ts        # carrega + valida + deriva (desconto, slug)
-  three/Mundo.tsx       # <Canvas>, câmera, luz, controles
-  three/Galpao.tsx      # ambiente modular (piso, prateleiras, esteira)
-  three/Produto.tsx     # 1 item no mundo (instanciado)
-  three/Patto.tsx       # personagem (placeholder no v0)
-  components/CardProduto.tsx  # overlay 2D ao tocar
-  components/ModoLista.tsx    # fallback sem WebGL
-  components/HUD.tsx          # busca/botões sobre a cena
-  pages/index.astro     # monta a ilha do Mundo + HUD
-  pages/go/[id].ts      # redirect 302 -> linkAfiliado
-  styles/tokens.css     # tokens de cor e tipografia
-public/models/          # .glb (Draco/KTX2)
+  data/ofertas.json         # FONTE ÚNICA dos produtos
+  lib/schema.ts             # Zod: formato de uma oferta + nichos
+  lib/ofertas.ts            # carrega, valida, deriva (desconto, href)
+  content/blog/*.md         # artigos
+  content.config.ts         # schema do frontmatter do blog
+  layouts/Base.astro        # cabeçalho, rodapé, <head>
+  components/CardProduto.astro
+  pages/index.astro         # vitrine
+  pages/go/[id].ts          # 302 -> linkAfiliado (roda no servidor)
+  pages/blog/index.astro    # listagem
+  pages/blog/[...slug].astro # artigo
+  styles/tokens.css         # cores e tipografia
 ```
 
-## Roadmap (onde estamos)
+## Como adicionar
 
-- [x] **Parte 0** — Fundação & deploy (esqueleto, tokens, Netlify)
-- [x] **Parte 1** — Canvas & câmera (mundo vazio)
-- [x] **Parte 2** — Kit do galpão (ambiente estático)
-- [ ] **Parte 3** — Primeiro produto vindo dos dados
-- [ ] **Parte 4** — `/go/[id]` + Modo Lista
-- [ ] **Parte 5** — Patto na cena + acabamento de clima
-- [ ] **Parte 6+** — Crescimento (ver plano, seção 11)
+**Um achado:** uma entrada em `src/data/ofertas.json`, commit, push.
+Campos: `id` (slug único), `titulo`, `preco`, `precoDe?`, `nicho`, `loja?`,
+`full?`, `linkAfiliado`, `img?`, `criadoEm` (AAAA-MM-DD).
+Sem `img` o card usa um fundo da cor do nicho — não quebra.
+
+**Um artigo:** um `.md` em `src/content/blog/`.
+Frontmatter: `titulo`, `resumo`, `publicadoEm`, `tags?`, `rascunho?`.
+
+## Roadmap
+
+- [x] Vitrine de achados com card e CTA
+- [x] `/go/[id]` — redirect 302 pro Mercado Livre
+- [x] Blog com Markdown
+- [ ] Filtro por nicho na vitrine
+- [ ] Página por produto (`/p/[id]`) + OG pra compartilhar no Instagram
+- [ ] Sitemap + RSS
+- [ ] Contagem de cliques no `/go`
+- [ ] Automação: agente escreve no `ofertas.json` sozinho
 
 ## Stack
-Astro + TypeScript · React 19 (`@astrojs/react`) · React Three Fiber + drei + three ·
-Tailwind CSS v4 (plugin Vite) · Zod · adapter `@astrojs/netlify` · npm.
+
+Astro + TypeScript · Tailwind CSS v4 (plugin Vite) · Zod · adapter
+`@astrojs/netlify` · npm. **Sem framework de UI** — nenhum React no projeto.
 **Versões são fixadas (exatas) no `package.json`** — não usar `^` nem `~`.
 
 ## Paleta
+
 azul-noite `#15203C` / `#0F1320` · âmbar `#FFC400` / `#FF9F0A` ·
-vermelho CTA `#E03131` · ciano holográfico `#3FE0D0` · creme `#FBF8F1` · neutros grafite.
+vermelho CTA `#E03131` · ciano `#3FE0D0` · creme `#FBF8F1` · neutros grafite.
 Display: **Clash Display** (fallback Space Grotesk) · Corpo: **Inter**.

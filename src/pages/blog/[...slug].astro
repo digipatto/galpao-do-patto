@@ -1,0 +1,165 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const artigos = await getCollection('blog', ({ data }) => !data.rascunho);
+  return artigos.map((artigo) => ({
+    params: { slug: artigo.id },
+    props: { artigo },
+  }));
+}
+
+interface Props {
+  artigo: CollectionEntry<'blog'>;
+}
+
+const { artigo } = Astro.props;
+const { Content } = await render(artigo);
+
+// timeZone UTC de propósito: "2026-10-06" no frontmatter vira meia-noite UTC,
+// e formatar em horário de Brasília (UTC-3) jogaria a data pro dia anterior.
+const formatarData = (data: Date) =>
+  data.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+---
+
+<Base titulo={`${artigo.data.titulo} — O Galpão do Patto`} descricao={artigo.data.resumo} secao="blog">
+  <article class="artigo">
+    <header>
+      <a class="voltar" href="/blog">← Blog</a>
+      <h1>{artigo.data.titulo}</h1>
+      <p class="meta">
+        <time datetime={artigo.data.publicadoEm.toISOString()}>
+          {formatarData(artigo.data.publicadoEm)}
+        </time>
+      </p>
+    </header>
+
+    <div class="texto">
+      <Content />
+    </div>
+  </article>
+</Base>
+
+<style>
+  .artigo {
+    width: min(100% - calc(var(--gutter) * 2), 42rem);
+    margin: 2rem auto 0;
+  }
+
+  .voltar {
+    display: inline-block;
+    margin-bottom: 1.25rem;
+    font-size: 0.875rem;
+    color: var(--texto-tenue);
+    text-decoration: none;
+  }
+  .voltar:hover {
+    color: var(--acento);
+  }
+
+  h1 {
+    margin: 0 0 0.5rem;
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: clamp(1.625rem, 6vw, 2.5rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--texto);
+    text-wrap: balance;
+  }
+
+  .meta {
+    margin: 0 0 2rem;
+    font-size: 0.875rem;
+    color: var(--texto-tenue);
+  }
+
+  /* Estilo do Markdown renderizado. É :global porque o HTML vem do <Content />,
+     que o Astro não marca com o escopo deste componente. */
+  .texto :global(p),
+  .texto :global(ul),
+  .texto :global(ol) {
+    margin: 0 0 1.1rem;
+    line-height: 1.7;
+    color: var(--texto-suave);
+    text-wrap: pretty;
+  }
+
+  .texto :global(h2),
+  .texto :global(h3) {
+    margin: 2rem 0 0.75rem;
+    font-family: var(--fonte-display);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--texto);
+  }
+
+  .texto :global(h2) {
+    font-size: 1.375rem;
+  }
+  .texto :global(h3) {
+    font-size: 1.125rem;
+  }
+
+  .texto :global(a) {
+    color: var(--acento);
+    text-underline-offset: 2px;
+  }
+
+  /* O reset do Tailwind zera list-style; o texto do artigo precisa dele. */
+  .texto :global(ul) {
+    list-style: disc;
+    padding-left: 1.25rem;
+  }
+
+  .texto :global(ol) {
+    list-style: decimal;
+    padding-left: 1.5rem;
+  }
+
+  .texto :global(li)::marker {
+    color: var(--texto-tenue);
+  }
+
+  .texto :global(li) {
+    margin-bottom: 0.4rem;
+  }
+
+  .texto :global(strong) {
+    color: var(--texto);
+  }
+
+  .texto :global(blockquote) {
+    margin: 0 0 1.1rem;
+    padding-left: 1rem;
+    border-left: 3px solid var(--acento);
+    color: var(--texto-suave);
+  }
+
+  .texto :global(code) {
+    font-size: 0.875em;
+    padding: 0.1em 0.35em;
+    border-radius: var(--raio-sm);
+    background: var(--superficie);
+    color: var(--holo);
+  }
+
+  .texto :global(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--raio);
+  }
+
+  .texto :global(hr) {
+    margin: 2rem 0;
+    border: 0;
+    border-top: 1px solid var(--superficie-borda);
+  }
+</style>
