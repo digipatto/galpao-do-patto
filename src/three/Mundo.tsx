@@ -1,5 +1,6 @@
-import { useCallback, useRef } from 'react';
-import { Canvas, invalidate } from '@react-three/fiber';
+import { useCallback, useEffect, useRef } from 'react';
+import { Canvas, invalidate, useThree } from '@react-three/fiber';
+import type { OrthographicCamera } from 'three';
 import { MapControls } from '@react-three/drei';
 import type { MapControls as MapControlsImpl } from 'three-stdlib';
 import Galpao, { GALPAO } from './Galpao';
@@ -32,31 +33,56 @@ function prender(valor: number, limite: number) {
 }
 
 /**
- * Enquadramento inicial, calculado pelo tamanho da tela.
+ * Enquadramento, calculado pelo tamanho real do canvas.
  *
  * Numa câmera ortográfica o mundo visível é `pixels / zoom`, então um zoom fixo
- * que fica bom no desktop deixa o celular colado numa prateleira. O celular
- * abre mostrando um pedaço generoso do galpão; o desktop, o galpão inteiro.
+ * que fica bom no desktop deixa o celular colado numa prateleira.
+ *
+ * O cálculo mora num componente dentro do <Canvas>, e não numa prop, porque
+ * `window.innerWidth` na hora de montar pode não ser o tamanho final — o layout
+ * ainda está assentando. Lido daqui, o tamanho é o que o R3F mediu de verdade,
+ * e ele se corrige sozinho quando a tela muda (girar o celular, por exemplo).
  */
-function zoomInicial() {
-  if (typeof window === 'undefined') return 14;
-
-  const { innerWidth: largura, innerHeight: altura } = window;
+function calcularZoom(largura: number, altura: number) {
   const estreito = largura < 640;
 
-  const mundoNaLargura = estreito ? 52 : 86;
-  const mundoNaAltura = estreito ? 62 : 58;
+  // O galpão projetado em isometria tem ~55 unidades de largura. No celular
+  // vale enxergar ele inteiro de cara, mesmo pequeno: é o "parece um galpão"
+  // que importa na primeira impressão. Dá pra chegar perto com a pinça.
+  const mundoNaLargura = estreito ? 60 : 52;
+  const mundoNaAltura = estreito ? 54 : 36;
 
   const zoom = Math.min(largura / mundoNaLargura, altura / mundoNaAltura);
   return Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom));
 }
 
+/**
+ * Reenquadra enquanto o visitante não tocou na cena. Depois do primeiro
+ * arrastar ou pinçar, a câmera é dele — redimensionar não joga a vista fora
+ * do lugar que ele escolheu.
+ */
+function Enquadramento({ automatico }: { automatico: React.RefObject<boolean> }) {
+  const camera = useThree((estado) => estado.camera) as OrthographicCamera;
+  const tamanho = useThree((estado) => estado.size);
+
+  useEffect(() => {
+    if (!automatico.current) return;
+    camera.zoom = calcularZoom(tamanho.width, tamanho.height);
+    camera.updateProjectionMatrix();
+    invalidate();
+  }, [camera, tamanho, automatico]);
+
+  return null;
+}
+
 function Cena() {
   const fundo = useCorToken('--fundo', '#0f1320');
   const holo = useCorToken('--holo', '#3fe0d0');
-  const acento = useCorToken('--acento', '#ffc400');
+  const luz = useCorToken('--mundo-luz', '#fbf8f1');
+  const metal = useCorToken('--mundo-metal-claro', '#3a4356');
 
   const controles = useRef<MapControlsImpl>(null);
+  const enquadrarAuto = useRef(true);
 
   // Impede que o visitante arraste pro infinito e perca o mundo de vista.
   // Move alvo e câmera pelo mesmo delta, pra não desalinhar o enquadramento.
@@ -80,9 +106,11 @@ function Cena() {
     <>
       <color attach="background" args={[fundo]} />
 
-      {/* Preenchimento frio por cima, quente do chão — dá volume sem custo. */}
-      <hemisphereLight args={[holo, fundo, 0.9]} />
-      <ambientLight intensity={0.35} />
+      {/* Preenchimento frio por cima, escuro do chão — dá volume sem custo.
+          Generoso de propósito: a versão anterior ficou escura demais e os
+          racks sumiam no piso. */}
+      <hemisphereLight args={[holo, metal, 1.15]} />
+      <ambientLight intensity={0.7} />
 
       {/*
         UMA luz com sombra, mapa pequeno: é a regra de performance do plano.
@@ -91,8 +119,10 @@ function Cena() {
       */}
       <directionalLight
         position={[26, 34, 18]}
-        intensity={1.5}
-        color={acento}
+        intensity={1.7}
+        // Branco-creme, nao ambar: a luz ambar tingia a cena inteira de
+        // amarelo-esverdeado. Ambar agora e so acento (luminaria, etiqueta).
+        color={luz}
         castShadow
         shadow-mapSize={[1024, 1024]}
         shadow-camera-left={-38}
@@ -107,6 +137,8 @@ function Cena() {
 
       <Galpao />
 
+      <Enquadramento automatico={enquadrarAuto} />
+
       {/*
         Arrastar = mover (pan no plano do chão), pinça/scroll = zoom.
         Sem rotação livre, de propósito: visão de maquete, clareza no celular.
@@ -117,10 +149,16 @@ function Cena() {
         enableRotate={false}
         enableDamping
         dampingFactor={0.12}
+        // Alvo acima do piso: centraliza o galpão com a parede e o letreiro
+        // dentro do quadro, em vez de cortar o topo.
+        target={[0, 3, 0]}
         screenSpacePanning={false}
         minZoom={ZOOM_MIN}
         maxZoom={ZOOM_MAX}
         onChange={prenderNaArea}
+        onStart={() => {
+          enquadrarAuto.current = false;
+        }}
       />
     </>
   );
@@ -134,7 +172,9 @@ export default function Mundo() {
       frameloop="demand"
       dpr={[1, 2]}
       shadows="soft"
-      camera={{ position: CAMERA_POS, zoom: zoomInicial(), near: 0.1, far: 400 }}
+      // O zoom real vem do <Enquadramento>, que mede o canvas. Este valor é só
+      // pra primeira matriz de projeção não nascer absurda.
+      camera={{ position: CAMERA_POS, zoom: 14, near: 0.1, far: 400 }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       style={{ position: 'absolute', inset: 0, touchAction: 'none' }}
     >

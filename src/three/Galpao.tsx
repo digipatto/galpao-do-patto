@@ -7,33 +7,33 @@ import { useCorToken } from './hooks/useCorToken';
 /**
  * Parte 2 — o kit do galpão: ambiente estático e modular.
  *
- * Tudo aqui é cenário: piso, prateleiras, parede de vidro, LED de teto e o
- * letreiro da marca. NENHUM produto mora neste arquivo — produto vem dos dados
- * na Parte 3. As peças repetidas são InstancedMesh desde já, porque o galpão
- * cresce e isso não pode virar milhares de draw calls.
+ * Direção: minimalista. Poucas peças, muito respiro, neon só onde significa
+ * alguma coisa. O galpão tem que ler num piscar de olho — se precisa de
+ * esforço pra entender o que é, tem elemento sobrando.
+ *
+ * NENHUM produto mora neste arquivo — produto vem dos dados na Parte 3.
+ * Peças repetidas são InstancedMesh, porque o galpão cresce.
  *
  * Geometria é primitivo, de propósito (placeholder-first, seção 10 do plano).
- * Trocar por .glb com Draco depois não muda nada fora deste arquivo.
  */
 
 /**
  * As medidas do galpão, num lugar só.
- * A Parte 3 vai importar isto no `layout.ts` pra encaixar os produtos nas
+ * A Parte 3 importa isto no `layout.ts` pra encaixar os produtos nas
  * prateleiras — as vagas precisam cair exatamente em cima destes racks.
  */
 export const GALPAO = {
-  piso: { largura: 64, profundidade: 44 },
-  parede: { altura: 10, fundoZ: -22, lateralX: -32 },
-  teto: { altura: 9 },
-  rack: { largura: 4.2, profundidade: 1.6, altura: 5.2, niveis: 4 },
+  piso: { largura: 46, profundidade: 32 },
+  parede: { altura: 6, fundoZ: -16 },
+  rack: { largura: 4.6, profundidade: 1.8, altura: 4.2, niveis: 3 },
   /** z de cada fileira de racks. */
-  fileirasZ: [-16, -8, 8, 16],
+  fileirasZ: [-10, 0, 10],
   /** z de cada corredor, entre as fileiras. */
-  corredoresZ: [-12, 0, 12],
+  corredoresZ: [-5, 5],
   /** vagas (racks) por fileira, da esquerda pra direita. */
-  vagasPorFileira: 10,
-  vagaXInicial: -24.75,
-  vagaPassoX: 5.5,
+  vagasPorFileira: 6,
+  vagaXInicial: -16.5,
+  vagaPassoX: 6.6,
 } as const;
 
 /** x do centro de uma vaga, contando da esquerda. */
@@ -53,98 +53,77 @@ function Piso() {
 
   const { largura, profundidade } = GALPAO.piso;
 
-  // Linhas-guia dos corredores: fitas finas no chão, como num CD de verdade.
-  const guias = useMemo<Ponto[]>(
-    () => GALPAO.corredoresZ.map((z) => [0, 0.015, z]),
-    [],
-  );
-
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[largura, profundidade]} />
-        <meshStandardMaterial color={piso} roughness={0.85} metalness={0.08} />
+        <meshStandardMaterial color={piso} roughness={0.82} metalness={0.1} />
       </mesh>
 
-      <Instances limit={16}>
-        <boxGeometry args={[largura - 8, 0.02, 0.22]} />
-        {/* toneMapped={false} mantém o neon saturado depois do tone mapping. */}
-        <meshBasicMaterial color={holo} toneMapped={false} transparent opacity={0.5} />
-        {guias.map((p, i) => (
-          <Instance key={i} position={p} />
-        ))}
-      </Instances>
+      {/* Duas linhas-guia, discretas. Marcam o corredor, não competem com nada. */}
+      {GALPAO.corredoresZ.map((z) => (
+        <mesh key={z} position={[0, 0.012, z]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[largura - 10, 0.22]} />
+          <meshBasicMaterial color={holo} toneMapped={false} transparent opacity={0.26} />
+        </mesh>
+      ))}
     </group>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Prateleiras (racks) — o grosso do instancing                        */
+/* Prateleiras (racks)                                                 */
 /* ------------------------------------------------------------------ */
 
 function Prateleiras() {
-  const metal = useCorToken('--mundo-metal', '#262d3d');
-  const metalClaro = useCorToken('--mundo-metal-claro', '#3a4356');
-  const acento = useCorToken('--acento', '#ffc400');
+  const metal = useCorToken('--mundo-metal-claro', '#3a4356');
+  const tabua = useCorToken('--mundo-metal-topo', '#6f7b93');
 
   const { rack, fileirasZ, vagasPorFileira } = GALPAO;
 
-  const { montantes, tabuas, faixas } = useMemo(() => {
+  const { montantes, tabuas } = useMemo(() => {
     const montantes: Ponto[] = [];
     const tabuas: Ponto[] = [];
-    const faixas: Ponto[] = [];
 
     const meiaLargura = rack.largura / 2;
     const meiaProfundidade = rack.profundidade / 2;
-    // Níveis distribuídos de baixo pra cima, sem encostar no topo.
-    const alturaNivel = rack.altura / (rack.niveis + 0.5);
+    const alturaNivel = rack.altura / (rack.niveis + 0.4);
 
     for (const z of fileirasZ) {
       for (let vaga = 0; vaga < vagasPorFileira; vaga++) {
         const x = vagaX(vaga);
 
-        // 4 montantes nos cantos.
         for (const dx of [-meiaLargura, meiaLargura]) {
           for (const dz of [-meiaProfundidade, meiaProfundidade]) {
             montantes.push([x + dx, rack.altura / 2, z + dz]);
           }
         }
 
-        // Tábuas: uma por nível.
         for (let n = 1; n <= rack.niveis; n++) {
           tabuas.push([x, n * alturaNivel, z]);
         }
-
-        // Faixa âmbar na base — sinalização de vaga.
-        faixas.push([x, 0.06, z + meiaProfundidade + 0.1]);
       }
     }
 
-    return { montantes, tabuas, faixas };
+    return { montantes, tabuas };
   }, [rack, fileirasZ, vagasPorFileira]);
 
   return (
     <group>
       <Instances limit={montantes.length} castShadow receiveShadow>
-        <boxGeometry args={[0.16, GALPAO.rack.altura, 0.16]} />
-        <meshStandardMaterial color={metal} roughness={0.42} metalness={0.72} />
+        <boxGeometry args={[0.14, GALPAO.rack.altura, 0.14]} />
+        <meshStandardMaterial color={metal} roughness={0.5} metalness={0.6} />
         {montantes.map((p, i) => (
           <Instance key={i} position={p} />
         ))}
       </Instances>
 
+      {/* As tábuas são a superfície que pega luz — mais claras, dão a leitura
+          de prateleira. É o que faz o rack aparecer contra o piso escuro. */}
       <Instances limit={tabuas.length} castShadow receiveShadow>
-        <boxGeometry args={[GALPAO.rack.largura, 0.1, GALPAO.rack.profundidade]} />
-        <meshStandardMaterial color={metalClaro} roughness={0.6} metalness={0.35} />
+        <boxGeometry args={[GALPAO.rack.largura, 0.12, GALPAO.rack.profundidade]} />
+        <meshStandardMaterial color={tabua} roughness={0.65} metalness={0.25} />
         {tabuas.map((p, i) => (
-          <Instance key={i} position={p} />
-        ))}
-      </Instances>
-
-      <Instances limit={faixas.length}>
-        <boxGeometry args={[GALPAO.rack.largura, 0.03, 0.14]} />
-        <meshBasicMaterial color={acento} toneMapped={false} transparent opacity={0.55} />
-        {faixas.map((p, i) => (
           <Instance key={i} position={p} />
         ))}
       </Instances>
@@ -153,20 +132,22 @@ function Prateleiras() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Parede de vidro + parede lateral                                    */
+/* Parede de vidro                                                     */
 /* ------------------------------------------------------------------ */
 
-function Paredes() {
+function ParedeDeVidro() {
   const vidro = useCorToken('--mundo-vidro', '#3fe0d0');
-  const metal = useCorToken('--mundo-metal', '#262d3d');
+  const metal = useCorToken('--mundo-metal-claro', '#3a4356');
+  const acento = useCorToken('--acento', '#ffc400');
 
-  const { altura, fundoZ, lateralX } = GALPAO.parede;
-  const { largura, profundidade } = GALPAO.piso;
+  const { altura, fundoZ } = GALPAO.parede;
+  const { largura } = GALPAO.piso;
 
-  // Montantes verticais do vidro, a cada 4 unidades.
+  // Só a parede do fundo. A lateral fechada da versão anterior virava um
+  // bloco preto na vista isométrica — sem ela o galpão respira.
   const caixilhos = useMemo<Ponto[]>(() => {
     const lista: Ponto[] = [];
-    for (let x = -largura / 2; x <= largura / 2; x += 4) {
+    for (let x = -largura / 2; x <= largura / 2 + 0.001; x += 5.75) {
       lista.push([x, altura / 2, fundoZ]);
     }
     return lista;
@@ -174,60 +155,45 @@ function Paredes() {
 
   return (
     <group>
-      {/* Vidro: transparência simples de propósito. `transmission` do
+      {/* Transparência simples de propósito: `transmission` do
           MeshPhysicalMaterial é bonito e caro demais pro orçamento mobile. */}
       <mesh position={[0, altura / 2, fundoZ]}>
         <planeGeometry args={[largura, altura]} />
         <meshStandardMaterial
           color={vidro}
           transparent
-          opacity={0.1}
-          roughness={0.08}
-          metalness={0.3}
+          opacity={0.14}
+          roughness={0.1}
+          metalness={0.2}
           side={THREE.DoubleSide}
         />
       </mesh>
 
       <Instances limit={caixilhos.length}>
-        <boxGeometry args={[0.12, altura, 0.12]} />
-        <meshStandardMaterial color={metal} roughness={0.4} metalness={0.7} />
+        <boxGeometry args={[0.1, altura, 0.1]} />
+        <meshStandardMaterial color={metal} roughness={0.45} metalness={0.65} />
         {caixilhos.map((p, i) => (
           <Instance key={i} position={p} />
         ))}
       </Instances>
 
-      {/* Parede lateral fechada, pra ancorar a vista isométrica. */}
-      <mesh position={[lateralX, altura / 2, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
-        <planeGeometry args={[profundidade, altura]} />
-        <meshStandardMaterial color={metal} roughness={0.9} metalness={0.15} side={THREE.DoubleSide} />
+      {/*
+        A viga de topo É a luz do galpão. Tentei fitas de LED soltas no teto
+        duas vezes: em projeção isométrica uma linha fina e brilhante lê como
+        arranhão, e baixa demais ela cai em cima das prateleiras. Na viga a luz
+        vira arquitetura, fica no fundo e não atravessa nada.
+      */}
+      <mesh position={[0, altura, fundoZ]}>
+        <boxGeometry args={[largura, 0.18, 0.24]} />
+        <meshStandardMaterial
+          color={metal}
+          emissive={acento}
+          emissiveIntensity={0.35}
+          roughness={0.45}
+          metalness={0.5}
+        />
       </mesh>
     </group>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Fitas de LED no teto                                                */
-/* ------------------------------------------------------------------ */
-
-function LuzesDeTeto() {
-  const acento = useCorToken('--acento', '#ffc400');
-  const { largura } = GALPAO.piso;
-
-  // Sobre cada corredor. Sem malha de teto: a vista isométrica precisa do topo
-  // aberto, então só as fitas ficam penduradas no ar.
-  const fitas = useMemo<Ponto[]>(
-    () => GALPAO.corredoresZ.map((z) => [0, GALPAO.teto.altura, z]),
-    [],
-  );
-
-  return (
-    <Instances limit={fitas.length}>
-      <boxGeometry args={[largura - 10, 0.14, 0.4]} />
-      <meshBasicMaterial color={acento} toneMapped={false} />
-      {fitas.map((p, i) => (
-        <Instance key={i} position={p} />
-      ))}
-    </Instances>
   );
 }
 
@@ -236,8 +202,8 @@ function LuzesDeTeto() {
 /* ------------------------------------------------------------------ */
 
 const LETREIRO_TEXTO = 'O GALPÃO DO PATTO';
-const LETREIRO_LARGURA = 19;
-const LETREIRO_ALTURA = 4.75; // 4:1, igual ao canvas
+const LETREIRO_LARGURA = 13;
+const LETREIRO_ALTURA = 3.25; // 4:1, igual ao canvas
 
 function Letreiro() {
   const holo = useCorToken('--holo', '#3fe0d0');
@@ -266,12 +232,25 @@ function Letreiro() {
 
     const ctx = canvas.getContext('2d');
     if (ctx) {
+      const fonte = (px: number) =>
+        `700 ${px}px "Clash Display", "Space Grotesk", sans-serif`;
+
+      // Encolhe até caber. Sem isso o texto vaza do canvas e aparece cortado —
+      // e a largura depende da fonte que o navegador conseguiu carregar.
+      const util = canvas.width - 72;
+      let px = 112;
+      ctx.font = fonte(px);
+      while (ctx.measureText(LETREIRO_TEXTO).width > util && px > 24) {
+        px -= 2;
+        ctx.font = fonte(px);
+      }
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.font = '700 118px "Clash Display", "Space Grotesk", sans-serif';
+      ctx.font = fonte(px);
       ctx.fillStyle = holo;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(LETREIRO_TEXTO, canvas.width / 2, canvas.height / 2 + 6);
+      ctx.fillText(LETREIRO_TEXTO, canvas.width / 2, canvas.height / 2);
     }
 
     const t = new THREE.CanvasTexture(canvas);
@@ -285,22 +264,11 @@ function Letreiro() {
   useEffect(() => () => textura.dispose(), [textura]);
 
   return (
-    // Virado 45° pra encarar a câmera isométrica de frente.
-    <group position={[-4, 7.2, -13]} rotation={[0, Math.PI / 4, 0]}>
-      {/* Brilho atrás do texto. */}
+    // Holograma solto no ar, sobre o fundo do galpão. A rotação de 45° encara
+    // a câmera isométrica de frente — como ela nunca gira, o letreiro fica
+    // sempre legível, sem precisar de billboard por frame.
+    <group position={[-1, GALPAO.parede.altura + 5, -13]} rotation={[0, Math.PI / 4, 0]}>
       <mesh>
-        <planeGeometry args={[LETREIRO_LARGURA + 1.4, LETREIRO_ALTURA + 1]} />
-        <meshBasicMaterial
-          color={holo}
-          toneMapped={false}
-          transparent
-          opacity={0.07}
-          depthWrite={false}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-
-      <mesh position={[0, 0, 0.01]}>
         <planeGeometry args={[LETREIRO_LARGURA, LETREIRO_ALTURA]} />
         <meshBasicMaterial
           map={textura}
@@ -309,12 +277,6 @@ function Letreiro() {
           depthWrite={false}
           side={THREE.DoubleSide}
         />
-      </mesh>
-
-      {/* Linha de base, pra dar leitura de holograma projetado. */}
-      <mesh position={[0, -LETREIRO_ALTURA / 2 - 0.5, 0.01]}>
-        <planeGeometry args={[LETREIRO_LARGURA, 0.06]} />
-        <meshBasicMaterial color={holo} toneMapped={false} transparent opacity={0.6} />
       </mesh>
     </group>
   );
@@ -327,8 +289,7 @@ export default function Galpao() {
     <group>
       <Piso />
       <Prateleiras />
-      <Paredes />
-      <LuzesDeTeto />
+      <ParedeDeVidro />
       <Letreiro />
     </group>
   );

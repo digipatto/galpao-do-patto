@@ -60,7 +60,11 @@
   --mundo-piso: var(--p-azul-noite);
   --mundo-metal: var(--p-grafite-700);
   --mundo-metal-claro: var(--p-grafite-600);
+  /* superfície que pega luz (tábua da prateleira): é o contraste que faz o
+     rack aparecer contra o piso escuro */
+  --mundo-metal-topo: var(--p-grafite-400);
   --mundo-vidro: var(--p-ciano);
+  --mundo-luz: var(--p-creme);
 
   /* tipografia */
   --fonte-display: "Clash Display", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
