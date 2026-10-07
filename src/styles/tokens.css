@@ -1,0 +1,159 @@
+/* ============================================================
+   O Galpão do Patto — tokens
+   ÚNICO lugar onde cor da marca mora. Nenhum hex fora deste arquivo.
+   ============================================================ */
+
+@import "tailwindcss";
+
+/* ---------- 1. Paleta crua (não usar direto na UI) ---------- */
+:root {
+  /* azul-noite / grafite — estrutura do galpão */
+  --p-azul-noite: #15203c;
+  --p-azul-abissal: #0f1320;
+
+  /* âmbar — sinalização, holograma, acento (herança ML) */
+  --p-ambar: #ffc400;
+  --p-ambar-quente: #ff9f0a;
+
+  /* vermelho — só CTA, etiqueta de desconto, gravata do Patto */
+  --p-vermelho: #e03131;
+
+  /* ciano/teal — holograma e linha-guia do piso */
+  --p-ciano: #3fe0d0;
+
+  /* creme — vidro, luz, card */
+  --p-creme: #fbf8f1;
+
+  /* neutros grafite */
+  --p-grafite-900: #11141c;
+  --p-grafite-800: #1a1f2b;
+  --p-grafite-700: #262d3d;
+  --p-grafite-600: #3a4356;
+  --p-grafite-400: #6f7b93;
+  --p-grafite-200: #b9c1d1;
+  --p-grafite-100: #dfe4ed;
+}
+
+/* ---------- 2. Tokens semânticos — TEMA ESCURO (padrão) ---------- */
+/* O galpão é noturno: escuro é a identidade, não uma variação. */
+:root {
+  --fundo: var(--p-azul-abissal);
+  --fundo-elevado: var(--p-azul-noite);
+  --superficie: var(--p-grafite-800);
+  --superficie-borda: var(--p-grafite-700);
+
+  --texto: var(--p-creme);
+  --texto-suave: var(--p-grafite-200);
+  --texto-tenue: var(--p-grafite-400);
+
+  --acento: var(--p-ambar);
+  --acento-quente: var(--p-ambar-quente);
+  --holo: var(--p-ciano);
+  --cta: var(--p-vermelho);
+  --cta-texto: var(--p-creme);
+
+  --brilho-holo: 0 0 24px color-mix(in srgb, var(--holo) 45%, transparent);
+  --brilho-acento: 0 0 20px color-mix(in srgb, var(--acento) 35%, transparent);
+
+  /* tipografia */
+  --fonte-display: "Clash Display", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --fonte-corpo: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* ritmo */
+  --raio: 0.75rem;
+  --raio-sm: 0.375rem;
+  --gutter: 1rem;
+
+  color-scheme: dark;
+}
+
+/* ---------- 3. Tokens semânticos — TEMA CLARO ---------- */
+/* Vale para quem pede claro no sistema, salvo escuro travado na raiz. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-tema="escuro"]) {
+    --fundo: var(--p-creme);
+    --fundo-elevado: #ffffff;
+    --superficie: #ffffff;
+    --superficie-borda: var(--p-grafite-100);
+
+    --texto: var(--p-grafite-900);
+    --texto-suave: var(--p-grafite-600);
+    --texto-tenue: var(--p-grafite-400);
+
+    --acento: var(--p-ambar-quente);
+    --acento-quente: var(--p-ambar);
+    --holo: #0f9e92;
+    --cta: var(--p-vermelho);
+    --cta-texto: var(--p-creme);
+
+    --brilho-holo: 0 0 18px color-mix(in srgb, var(--holo) 25%, transparent);
+    --brilho-acento: 0 0 16px color-mix(in srgb, var(--acento) 25%, transparent);
+
+    color-scheme: light;
+  }
+}
+
+/* Tema claro travado por atributo (útil pro Modo Lista na Parte 4). */
+:root[data-tema="claro"] {
+  --fundo: var(--p-creme);
+  --fundo-elevado: #ffffff;
+  --superficie: #ffffff;
+  --superficie-borda: var(--p-grafite-100);
+
+  --texto: var(--p-grafite-900);
+  --texto-suave: var(--p-grafite-600);
+  --texto-tenue: var(--p-grafite-400);
+
+  --acento: var(--p-ambar-quente);
+  --acento-quente: var(--p-ambar);
+  --holo: #0f9e92;
+  --cta: var(--p-vermelho);
+  --cta-texto: var(--p-creme);
+
+  color-scheme: light;
+}
+
+/* ---------- 4. Ponte pro Tailwind v4 ---------- */
+/* Expõe os tokens como utilitários (bg-fundo, text-acento, font-display…). */
+@theme inline {
+  --color-fundo: var(--fundo);
+  --color-fundo-elevado: var(--fundo-elevado);
+  --color-superficie: var(--superficie);
+  --color-superficie-borda: var(--superficie-borda);
+  --color-texto: var(--texto);
+  --color-texto-suave: var(--texto-suave);
+  --color-texto-tenue: var(--texto-tenue);
+  --color-acento: var(--acento);
+  --color-acento-quente: var(--acento-quente);
+  --color-holo: var(--holo);
+  --color-cta: var(--cta);
+  --color-cta-texto: var(--cta-texto);
+
+  --font-display: var(--fonte-display);
+  --font-corpo: var(--fonte-corpo);
+}
+
+/* ---------- 5. Base ---------- */
+html {
+  background-color: var(--fundo);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--fundo);
+  color: var(--texto);
+  font-family: var(--fonte-corpo);
+  /* mobile-first: nunca rolar de lado */
+  overflow-x: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

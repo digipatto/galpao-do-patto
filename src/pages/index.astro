@@ -1,0 +1,71 @@
+---
+import '../styles/tokens.css';
+// Parte 0: página mínima, sem 3D. A ilha do Mundo (client:only="react")
+// entra na Parte 1.
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>O Galpão do Patto</title>
+    <meta
+      name="description"
+      content="O centro de distribuição de achados do Patto. Em construção."
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap"
+    />
+    <!-- Clash Display (display da marca) — Fontshare. Fallback: Space Grotesk. -->
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap"
+    />
+  </head>
+
+  <body>
+    <main class="palco">
+      <h1 class="titulo">O Galpão do Patto</h1>
+      <p class="subtitulo">Em construção — o galpão está sendo montado.</p>
+    </main>
+  </body>
+</html>
+
+<style>
+  .palco {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem var(--gutter);
+    text-align: center;
+    background-color: var(--fundo);
+  }
+
+  .titulo {
+    margin: 0;
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: clamp(2rem, 9vw, 4.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--texto);
+    text-wrap: balance;
+  }
+
+  .subtitulo {
+    margin: 0;
+    max-width: 32ch;
+    font-size: clamp(0.9375rem, 3.6vw, 1.0625rem);
+    line-height: 1.5;
+    color: var(--texto-tenue);
+    text-wrap: pretty;
+  }
+</style>
