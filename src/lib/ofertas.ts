@@ -5,16 +5,16 @@ import { esquemaOferta, type OfertaBruta } from './schema';
 /**
  * Carrega, valida e deriva as ofertas de src/data/ofertas.json.
  *
- * Esta é a ÚNICA porta de entrada dos dados. Nenhuma página lê o JSON direto —
- * assim a validação nunca é contornada por engano.
+ * Única porta de entrada dos dados: nenhuma página lê o JSON direto, então a
+ * validação nunca é contornada por engano.
  */
 
 export type Oferta = OfertaBruta & {
   /** % de desconto, arredondado. Só existe quando há precoDe. */
   desconto?: number;
-  /** Quanto o visitante deixa de gastar, em reais. Mais concreto que o %. */
+  /** Quanto o visitante deixa de gastar, em reais. */
   economia?: number;
-  /** Para onde o botão aponta. O link cru nunca sai daqui. */
+  /** Para onde o botão aponta. O link de afiliado cru nunca sai daqui. */
   href: string;
 };
 
@@ -37,8 +37,8 @@ function validar(): OfertaBruta[] {
     throw new Error(formatarErro(resultado.error));
   }
 
-  // id duplicado quebraria o /go e a chave da lista, e é fácil de cometer
-  // copiando uma oferta pra fazer a próxima.
+  // id repetido quebraria o /go e é fácil de cometer copiando uma oferta pra
+  // fazer a próxima.
   const vistos = new Set<string>();
   const repetidos = new Set<string>();
   for (const oferta of resultado.data) {
@@ -48,7 +48,7 @@ function validar(): OfertaBruta[] {
   if (repetidos.size > 0) {
     throw new Error(
       `src/data/ofertas.json tem id repetido: ${[...repetidos].join(', ')}.\n` +
-        'Cada oferta precisa de um id único — ele vira a URL em /go/[id].',
+        'Cada oferta precisa de um id único — ele vira o endereço em /go/<id>.',
     );
   }
 
@@ -83,8 +83,5 @@ export function acharOferta(id: string): Oferta | undefined {
 
 /** R$ 129,90 */
 export function formatarPreco(valor: number): string {
-  return valor.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  });
+  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }

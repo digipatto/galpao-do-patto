@@ -1,154 +1,105 @@
-# Achados do Patto — convenções do projeto
+# Achados & Ofertas — convenções do projeto
 
 > `CLAUDE.md` e `AGENTS.md` têm o MESMO conteúdo: editou um, replique no outro.
->
-> ⚠️ **`plano-galpao-do-patto.md` está superado.** Ele descreve uma versão
-> anterior do produto — um site-jogo 3D (galpão isométrico em React Three
-> Fiber), abandonada em 07/10/2026. O código 3D está no histórico do git, nos
-> commits até `c3ecde9`. **Este arquivo é a fonte de verdade agora**, junto com
-> `PRODUCT.md` (verdade do produto, usado pela skill de design Impeccable).
->
-> O nome mudou de "O Galpão do Patto" para **Achados do Patto**: "galpão" era a
-> metáfora do jogo, e o nome precisa conversar com @achadoseofertas.patto.
 
 ## O que é
 
-Site de links de afiliado do Mercado Livre. Duas seções:
+A página do perfil **@achadoseofertas.patto** (Instagram, "Patto | Achados &
+Ofertas"). Uma página só: o perfil em cima, o feed de ofertas embaixo, numa
+coluna de largura de celular. Cada oferta postada no Instagram vira um card
+com o botão pro Mercado Livre. A página cresce sozinha conforme ofertas entram
+em `src/data/ofertas.json`.
 
-- **Achados** (`/`) — **página de vendas**, não vitrine: herói com o campo 3D e
-  a oferta acima da dobra, faixa de confiança, problema, o filtro em 4 passos,
-  o produto em detalhe, FAQ e fecho com reversão de risco. Anteriores em grade
-  quando houver mais de um. Um toque e vai pro Mercado Livre.
-- **Blog** (`/blog`) — artigos, pra trazer tráfego do Google.
-
-Simples, rápido no celular, com o link a um toque de distância.
-O diferencial é a **curadoria**: poucos achados, muito filtro.
+- URL: https://achadoseofertaspatto.netlify.app (está na bio do Instagram)
+- Tagline (da bio): **"Eu garimpo. Você economiza."**
+- Sem blog por enquanto. O artigo antigo está no histórico do git (`5ca6042`).
 
 ## Regras inquebráveis
 
-1. **`src/data/ofertas.json` é a fonte única dos produtos.** Adicionar achado =
-   uma entrada no JSON. Nenhuma página lê o arquivo direto: tudo passa por
-   `src/lib/ofertas.ts`, pra validação nunca ser contornada.
-
+1. **`src/data/ofertas.json` é a fonte única.** Adicionar oferta = uma entrada
+   no JSON. Nenhuma página lê o arquivo direto: tudo passa por `src/lib/ofertas.ts`.
 2. **Link de afiliado só via `/go/[id]`.** O `linkAfiliado` nunca aparece no
-   HTML. O redirect é 302, e é onde a contagem de cliques vai entrar um dia.
-
-3. **Dado inválido derruba o build.** Zod valida `ofertas.json` e o frontmatter
-   do blog. Melhor falhar no build que publicar card quebrado.
-
-4. **JavaScript só em ilha, nunca na página inteira.** O site é HTML + CSS
-   estático. React existe pros componentes do Kokonut UI, e cada uso é uma ilha
-   explícita (`client:visible` / `client:load`). Se um componente não ganha nada
-   com JS, ele é `.astro`, não `.tsx`.
-
-5. **Mobile-first, e o link a UM toque.** O público vem do Instagram, no
-   celular. Nada de interação que coloque o CTA a dois toques — foi por isso
-   que o card que vira ficou no filtro de curadoria, não no produto.
-
-6. **`nicho` é metadado, não divide o site.** Serve pra cor da etiqueta e pra
-   filtro. Vitrine única, sempre.
-
-7. **Tokens de cor só em `src/styles/tokens.css`.** Nenhum hex espalhado em
-   componente ou página.
-
-8. **O site é escuro, sempre.** Não seguir `prefers-color-scheme`. O tema claro
-   existe nos tokens mas só liga por opt-in (`<html data-tema="claro">`).
-
-9. **Um artigo = um `.md` em `src/content/blog/`.** O nome do arquivo vira a
-   URL. `rascunho: true` tira da listagem e do build.
-
-10. **Construir parte por parte.** Não antecipar escopo futuro.
-
-11. **Conversão passa pelo landing-page-generator.** A home segue PAS
-    (público já conhece o problema: desconto falso). Uma meta, um CTA — todo
-    botão leva pro mesmo lugar. Auditar com os scripts em
-    `.claude/skills/landing-page-generator/scripts/` usando `python -X utf8`
-    (sem isso quebra no Windows). Os scripts procuram termos em inglês e
-    posição de caractere no HTML: tratar "How It Works", "risk reversal",
-    métricas e "above the fold" como falso-negativo, conferindo no print.
-
-12. **Nada de prova social inventada.** Nota, avaliações, ranking, vendas do
-    vendedor e parcelamento são copiados do anúncio e vão pro `ofertas.json`.
-    Campo não conferido fica de fora — a página só mostra o que existe. O
-    `conferidoEm` aparece na página: promessa de preço sem data é vazia.
-
-13. **Design passa pelo Impeccable.** Antes de editar UI, ler
-    `.claude/skills/impeccable/reference/craft-floor.md`. Depois de editar,
-    rodar `.claude/skills/impeccable/scripts/impeccable detect --json <arquivos>`.
-    Proibições que já me pegaram: kicker/sobrancelha acima de heading, grade de
-    cards iguais como estrutura de página, máscara geométrica fingindo recorte
-    de foto, sombra colorida sem deslocamento.
+   HTML. Redirect 302 — é onde a contagem de cliques entra um dia.
+3. **Dado inválido derruba o build** (Zod), com mensagem apontando o campo.
+4. **0 KB de JavaScript no visitante.** A página é HTML + CSS. React, three.js,
+   shadcn, Kokonut e Motion estão instalados, **parados, de propósito**. Não
+   importar nenhum sem o usuário pedir.
+5. **Mobile-first, e o link a UM toque.** O público vem do Instagram, no celular.
+   O card inteiro é clicável.
+6. **Nada de prova social inventada.** Nota, avaliações e ranking são copiados
+   do anúncio. Campo não conferido fica fora do JSON. **Nada de alegar método
+   que o dono não confirmou** (já aconteceu: copy antigo dizia que "confiro
+   histórico de preço" sem ninguém ter dito isso).
+7. **Tokens de cor só em `src/styles/tokens.css`.** Nenhum hex fora dele.
+8. **O site é escuro, sempre.** Não seguir `prefers-color-scheme`.
+9. **Não usar a foto de perfil atual do Instagram no site**: ela tem a logo e o
+   crachá "Mercado Livre Afiliados", que sugeririam vínculo oficial.
+10. **Design passa pelo Impeccable.** Antes de editar UI, ler
+    `.claude/skills/impeccable/reference/craft-floor.md`; depois, rodar
+    `.claude/skills/impeccable/scripts/impeccable detect --json <arquivos>`.
+    Proibido: kicker acima de heading, grade de cards iguais como estrutura de
+    página, gradiente em texto, sombra sem deslocamento.
 
 ## Mapa de pastas
 
 ```
 src/
-  data/ofertas.json         # FONTE ÚNICA dos produtos
-  lib/schema.ts             # Zod: formato de uma oferta + nichos
-  lib/ofertas.ts            # carrega, valida, deriva (desconto, href)
-  content/blog/*.md         # artigos
-  content.config.ts         # schema do frontmatter do blog
-  layouts/Base.astro        # cabeçalho, rodapé, <head>
-  components/CardProduto.astro
-  components/Garimpo.tsx    # campo 3D do herói (three.js, ilha client:idle)
-  pages/index.astro         # a página de vendas
-  pages/og.astro            # gerador da imagem de compartilhamento
-  pages/go/[id].ts          # 302 -> linkAfiliado (roda no servidor)
-  pages/blog/index.astro    # listagem
-  pages/blog/[...slug].astro # artigo
-  styles/tokens.css         # cores e tipografia
+  data/ofertas.json        FONTE ÚNICA das ofertas (começa vazio: [])
+  lib/schema.ts            Zod: formato de uma oferta
+  lib/ofertas.ts           carrega, valida, deriva (desconto, economia, href)
+  components/Oferta.astro  um card do feed
+  layouts/Base.astro       <head>, OG, rodapé com aviso de afiliado
+  pages/index.astro        perfil + feed (ou estado vazio) + FAQ
+  pages/go/[id].ts         302 -> linkAfiliado (roda no servidor)
+  pages/og.astro           gerador da imagem de compartilhamento (noindex)
+  styles/tokens.css        cores, tipografia, espaçamento
+public/
+  marca/patto.webp         avatar (recorte de cabeça e ombros da arte do Patto)
+  produtos/*.webp          foto de cada oferta
+  og.jpg, favicon.png, apple-touch-icon.png
 ```
 
-## Como adicionar
+## Como publicar uma oferta
 
-**Um achado:** uma entrada em `src/data/ofertas.json`, commit, push.
-Campos: `id` (slug único), `titulo`, `preco`, `precoDe?`, `nicho`, `loja?`,
-`full?`, `linkAfiliado`, `img?`, `criadoEm` (AAAA-MM-DD).
-Sem `img` o card usa um fundo da cor do nicho — não quebra.
+1. Adicionar uma entrada em `src/data/ofertas.json`.
+2. Se tiver foto, salvar em `public/produtos/<id>.webp` e apontar `img`.
+3. `npm run build` — se o JSON estiver errado, o erro aponta o campo.
+4. Commit e push; o Netlify publica sozinho.
 
-**Um artigo:** um `.md` em `src/content/blog/`.
-Frontmatter: `titulo`, `resumo`, `publicadoEm`, `tags?`, `rascunho?`.
+Campos: `id` (slug único), `titulo`, `preco`, `precoDe?`, `loja?`,
+`lojaOficial?`, `freteGratis?`, `full?`, `parcelas? {vezes, valor, semJuros}`,
+`avaliacao?`, `avaliacoes?`, `ranking?`, `img?`, `linkAfiliado`, `criadoEm`
+(AAAA-MM-DD, define a ordem: mais nova no topo), `conferidoEm?`.
 
-## Roadmap
-
-- [x] Vitrine de achados com card e CTA
-- [x] `/go/[id]` — redirect 302 pro Mercado Livre
-- [x] Blog com Markdown
-- [ ] Filtro por nicho na vitrine
-- [ ] Página por produto (`/p/[id]`) + OG pra compartilhar no Instagram
-- [ ] Sitemap + RSS
-- [ ] Contagem de cliques no `/go`
-- [ ] Automação: agente escreve no `ofertas.json` sozinho
-
-## Stack
-
-Astro + TypeScript · React 19 (só pras ilhas) · three.js · Tailwind CSS v4
-(plugin Vite) · shadcn + Kokonut UI · Motion · Zod · adapter
-`@astrojs/netlify` · npm.
-**Versões são fixadas (exatas) no `package.json`** — não usar `^` nem `~`.
-O `shadcn add` traz faixas com `^`: fixar depois de instalar.
-
-## Paleta
-
-Tirada do próprio Patto, não inventada: tinta do terno `#0B1018`–`#3A5A86` ·
-laranja do bico `#E8913F` (assinatura) · vermelho da gravata `#D92D2D` (só CTA) ·
-creme da camisa `#F5F1E8`.
-Display: **Clash Display** · Corpo: **Satoshi**. Ambas da Fontshare, uma origem
-só. Nada de Inter — o detector marca como fonte supergasta.
+**O ML bloqueia leitura automatizada** (403 no fetch, "não encontrado" até no
+Chrome headless, API exige token). Preço, título e foto vêm do usuário (print
+ou texto), nunca de scraping.
 
 ## Imagem de compartilhamento
 
-`/og` é um gerador, não página de visitante (`noindex`). Pra regerar depois de
-mexer na marca: `npm run build`, servir `dist/`, tirar print de `/og` em
-1200×630 e salvar como `public/og.jpg`.
+`/og` é um gerador, não página de visitante. Pra regerar: `npm run build`,
+servir `dist/` (`cd dist && python -m http.server 4331`), tirar print de `/og`
+em 1200×630 e salvar como `public/og.jpg`. O Chrome headless tem largura mínima
+de 500px: abaixo disso o print sai recortado e mente.
 
-O `astro.config.mjs` lê `process.env.URL` (o Netlify injeta no build) pra montar
-`canonical` e `og:image` absolutos. Local fica `localhost` — é esperado.
+## Ambiente
 
-## O campo 3D do herói
+- `npm run dev` **não funciona**: o adapter do Netlify tenta subir um runtime
+  Deno local e quebra. Usar `npm run build` e servir `dist/`.
+- `/go/[id]` roda no servidor, então não existe ao servir `dist/` à mão. Testar
+  importando `.netlify/v1/functions/ssr/ssr.mjs` no Node e chamando o handler.
+- O `astro.config.mjs` lê `process.env.URL` (o Netlify injeta no build); sem ele
+  usa o endereço de produção.
 
-`Garimpo.tsx` desenha o posicionamento: muitas caixas apagadas (o descarte) e
-as poucas acesas (o que passou). `aprovados` vem do tamanho do catálogo, então
-cresce sozinho. Custa ~129 KB gzip de three.js — por isso é `client:idle`,
-`aria-hidden`, pausa fora da tela, respeita `prefers-reduced-motion` e some
-inteiro quando não há WebGL.
+## Stack
+
+Astro 7 · TypeScript · Tailwind CSS v4 (só o reset, pelo plugin Vite) · Zod ·
+`@astrojs/netlify` · npm. **Versões exatas** no `package.json` (nada de `^`/`~`;
+o `shadcn add` traz `^`, fixar depois).
+
+## Paleta e tipografia
+
+Tirada do Patto: fundo azul-acinzentado escuro, bico `#F2A33A` (assinatura,
+acento e botão de seguir), gravata `#D92D2D` (só CTA de compra e etiqueta de
+desconto), camisa `#F6F2EA` (texto). Display **Clash Display**, corpo
+**Satoshi** (ambas Fontshare, uma origem só). Nada de Inter.

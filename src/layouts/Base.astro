@@ -4,20 +4,13 @@ import '../styles/tokens.css';
 interface Props {
   titulo: string;
   descricao: string;
-  secao?: 'achados' | 'blog';
-  /**
-   * Barra fixa de CTA no celular. O visitante vem do Instagram pra pegar um
-   * link; a pior coisa que o site pode fazer é obrigar ele a rolar de volta
-   * pra achar o botão.
-   */
-  ctaFixo?: { href: string; preco: string; titulo: string };
 }
 
-const { titulo, descricao, secao, ctaFixo } = Astro.props;
-const anoAtual = new Date().getFullYear();
+const { titulo, descricao } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const imagemSocial = new URL('/og.jpg', Astro.site).href;
+const anoAtual = new Date().getFullYear();
 ---
 
 <!doctype html>
@@ -27,24 +20,26 @@ const imagemSocial = new URL('/og.jpg', Astro.site).href;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{titulo}</title>
     <meta name="description" content={descricao} />
-    <meta name="theme-color" content="#0b1018" />
+    <meta name="theme-color" content="#0a0f17" />
     <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
     <meta property="og:title" content={titulo} />
     <meta property="og:description" content={descricao} />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="pt_BR" />
     <meta property="og:url" content={canonical} />
-    <meta property="og:site_name" content="Achados do Patto" />
+    <meta property="og:site_name" content="Achados & Ofertas" />
     <meta property="og:image" content={imagemSocial} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Achados do Patto — um achado por vez, já filtrado" />
+    <meta property="og:image:alt" content="Achados & Ofertas — eu garimpo, você economiza" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={imagemSocial} />
 
-    <!-- Clash Display (títulos) e Satoshi (corpo), ambas da Fontshare: uma só
-         origem, um só preconnect. Satoshi no lugar da Inter de propósito — a
-         Inter está em todo site e não dá personalidade nenhuma à marca. -->
+    <!-- Clash Display (títulos) e Satoshi (corpo), as duas da Fontshare: uma
+         origem só, um preconnect só. -->
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
     <link
       rel="stylesheet"
@@ -53,248 +48,65 @@ const imagemSocial = new URL('/og.jpg', Astro.site).href;
   </head>
 
   <body>
-    <a class="pular" href="#conteudo">Pular para o conteúdo</a>
-
-    <header class="cabecalho">
-      <div class="faixa cabecalho-linha">
-        <a class="marca" href="/">
-          <img src="/marca/patto.webp" alt="" width="40" height="40" />
-          <span>Achados <b>do Patto</b></span>
-        </a>
-
-        <nav class="navegacao" aria-label="Seções">
-          <a href="/" aria-current={secao === 'achados' ? 'page' : undefined}>Achados</a>
-          <a href="/blog" aria-current={secao === 'blog' ? 'page' : undefined}>Blog</a>
-        </nav>
-      </div>
-    </header>
-
-    <main id="conteudo">
+    <main>
       <slot />
     </main>
 
     <footer class="rodape">
-      <div class="faixa">
-        <p class="rodape-marca">Achados do Patto</p>
+      <div class="coluna">
+        <p class="rodape-marca">Achados &amp; Ofertas</p>
         <p>
-          Garimpo no Mercado Livre e publico um achado de cada vez. No Instagram:{' '}
+          Sigo no Instagram:
           <a href="https://instagram.com/achadoseofertas.patto" rel="me noopener" target="_blank"
             >@achadoseofertas.patto</a
           >
         </p>
         <p class="miudo">
-          Os links de produto são de afiliado: se você comprar por eles, eu ganho
-          uma comissão e você não paga nada a mais. Não tenho vínculo com o
-          Mercado Livre além do programa de afiliados. Preços e disponibilidade
-          mudam sem aviso — quem manda é a página do produto. © {anoAtual}
+          Os links de produto são de afiliado: se você comprar por eles, posso
+          receber uma comissão do Mercado Livre, sem custo a mais pra você. Não
+          tenho vínculo com o Mercado Livre além do programa de afiliados. Preço
+          e disponibilidade mudam sem aviso: vale o que está na página do
+          anúncio. © {anoAtual}
         </p>
       </div>
     </footer>
-
-    {
-      ctaFixo && (
-        <div class="barra-cta">
-          <div class="barra-cta-info">
-            <p class="barra-cta-nome">{ctaFixo.titulo}</p>
-            <p class="barra-cta-preco numeros">{ctaFixo.preco}</p>
-          </div>
-          <a class="cta" href={ctaFixo.href} rel="sponsored nofollow noopener">Pegar agora</a>
-        </div>
-      )
-    }
   </body>
 </html>
 
 <style>
-  .faixa {
-    width: min(100% - calc(var(--gutter) * 2), 64rem);
+  .coluna {
+    width: min(100% - calc(var(--gutter) * 2), 34rem);
     margin-inline: auto;
   }
 
-  .pular {
-    position: absolute;
-    left: -9999px;
-    top: 0;
-    padding: var(--e-3) var(--e-4);
-    background: var(--marca);
-    color: var(--p-tinta-900);
-    font-weight: 600;
-    border-radius: 0 0 var(--raio-sm) 0;
-    z-index: 20;
-  }
-  .pular:focus {
-    left: 0;
-  }
-
-  .cabecalho {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: color-mix(in srgb, var(--fundo) 86%, transparent);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--borda);
-  }
-
-  .cabecalho-linha {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--e-4);
-    min-height: 3.5rem;
-  }
-
-  .marca {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--e-2);
-    font-family: var(--fonte-display);
-    font-weight: 600;
-    font-size: 1.0625rem;
-    letter-spacing: -0.02em;
-    color: var(--texto);
-    text-decoration: none;
-    white-space: nowrap;
-  }
-  .marca b {
-    color: var(--marca);
-    font-weight: 600;
-  }
-  /* O Patto vem de um render com fundo de estúdio. Em vez de fingir recorte
-     com máscara redonda — que o piso de qualidade recusa —, o fundo escuro
-     dele vira a própria moldura do selo. */
-  .marca img {
-    width: 2.25rem;
-    height: 2.25rem;
-    object-fit: cover;
-    object-position: 50% 14%;
-    border-radius: var(--raio-sm);
-    background: var(--p-tinta-800);
-  }
-
-  .navegacao {
-    display: flex;
-    gap: var(--e-1);
-  }
-
-  .navegacao a {
-    padding: 0.4rem 0.8rem;
-    border-radius: 999px;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    color: var(--texto-tenue);
-    text-decoration: none;
-    transition: color 0.15s, background-color 0.15s;
-  }
-  .navegacao a:hover {
-    color: var(--texto);
-    background: var(--superficie);
-  }
-  .navegacao a[aria-current='page'] {
-    color: var(--p-tinta-900);
-    background: var(--marca);
-    font-weight: 600;
-  }
-
-  main {
-    min-height: 60svh;
-  }
-
   .rodape {
-    margin-top: var(--e-24);
-    padding: var(--e-12) 0 var(--e-16);
-    padding-bottom: calc(var(--e-16) + 5rem);
+    margin-top: var(--e-16);
+    padding: var(--e-8) 0 var(--e-12);
     border-top: 1px solid var(--borda);
-    color: var(--texto-tenue);
     font-size: 0.875rem;
+    color: var(--texto-tenue);
   }
 
   .rodape p {
     margin: 0 0 var(--e-2);
-    max-width: 68ch;
   }
 
   .rodape-marca {
     font-family: var(--fonte-display);
     font-weight: 600;
     font-size: 1.0625rem;
-    color: var(--texto);
     letter-spacing: -0.01em;
+    color: var(--texto);
   }
 
   .rodape a {
     color: var(--marca);
   }
 
-  /* ---------- barra fixa de CTA (só no celular) ---------- */
-
-  .barra-cta {
-    position: fixed;
-    inset: auto 0 0 0;
-    z-index: 15;
-    display: flex;
-    align-items: center;
-    gap: var(--e-3);
-    padding: var(--e-3) var(--gutter);
-    padding-bottom: max(var(--e-3), env(safe-area-inset-bottom));
-    background: color-mix(in srgb, var(--fundo-elevado) 94%, transparent);
-    backdrop-filter: blur(14px);
-    border-top: 1px solid var(--borda);
-  }
-
-  .barra-cta-info {
-    min-width: 0;
-    flex: 1;
-  }
-
-  .barra-cta-nome {
-    margin: 0;
-    font-size: 0.75rem;
-    color: var(--texto-tenue);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .barra-cta-preco {
-    margin: 0;
-    font-family: var(--fonte-display);
-    font-weight: 700;
-    font-size: 1.125rem;
-    letter-spacing: -0.02em;
-    color: var(--texto);
-  }
-
-  .barra-cta .cta {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    min-height: 3rem;
-    padding: 0 1.25rem;
-    border-radius: 999px;
-    background: var(--cta);
-    color: var(--cta-texto);
-    font-weight: 600;
-    text-decoration: none;
-  }
-
-  /* No desktop o CTA está sempre perto; a barra só atrapalharia. */
-  @media (min-width: 60rem) {
-    .barra-cta {
-      display: none;
-    }
-  }
-
-  @media (min-width: 60rem) {
-    .rodape {
-      padding-bottom: var(--e-16);
-    }
-  }
-
   .rodape .miudo {
     margin-top: var(--e-4);
     font-size: 0.8125rem;
     line-height: 1.6;
-    color: var(--texto-tenue);
     text-wrap: pretty;
   }
 </style>

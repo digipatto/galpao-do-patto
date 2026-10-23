@@ -1,0 +1,304 @@
+---
+import type { Oferta } from '../lib/ofertas';
+import { formatarPreco } from '../lib/ofertas';
+
+interface Props {
+  oferta: Oferta;
+}
+
+const { oferta } = Astro.props;
+
+// "2026-10-23" -> "23/10". Quebra a string em vez de usar Date: new Date() de
+// uma data sem horário vira meia-noite UTC e, no fuso do Brasil, cai no dia
+// anterior.
+const diaMes = (iso: string) => {
+  const [, mes, dia] = iso.split('-');
+  return `${dia}/${mes}`;
+};
+
+const inicial = oferta.titulo.trim().charAt(0).toUpperCase();
+
+const selos = [
+  oferta.freteGratis && 'Frete grátis',
+  oferta.lojaOficial && 'Loja oficial',
+  oferta.full && 'Full',
+].filter(Boolean) as string[];
+
+// Uma string só: as frases em linhas separadas do template perdiam o espaço
+// entre elas ("07/10.Confira").
+const nota = [
+  'Link de afiliado.',
+  oferta.conferidoEm && `Preço conferido em ${diaMes(oferta.conferidoEm)}.`,
+  'Confira no anúncio antes de comprar.',
+]
+  .filter(Boolean)
+  .join(' ');
+---
+
+<article class="oferta">
+  <div class="foto">
+    {
+      oferta.img ? (
+        <img src={oferta.img} alt="" loading="lazy" decoding="async" />
+      ) : (
+        <span class="inicial" aria-hidden="true">
+          {inicial}
+        </span>
+      )
+    }
+    {oferta.desconto !== undefined && <span class="desconto numeros">−{oferta.desconto}%</span>}
+  </div>
+
+  <div class="corpo">
+    <h3>{oferta.titulo}</h3>
+
+    <p class="precos">
+      {
+        oferta.precoDe !== undefined && (
+          <span class="de numeros">
+            <span class="sr">Preço cheio:</span>
+            {formatarPreco(oferta.precoDe)}
+          </span>
+        )
+      }
+      <strong class="por numeros">{formatarPreco(oferta.preco)}</strong>
+    </p>
+
+    {
+      oferta.parcelas && (
+        <p class="parcelas numeros">
+          ou {oferta.parcelas.vezes}× de {formatarPreco(oferta.parcelas.valor)}
+          {oferta.parcelas.semJuros ? ' sem juros' : ''}
+        </p>
+      )
+    }
+
+    {
+      (selos.length > 0 || oferta.avaliacao !== undefined || oferta.loja) && (
+        <ul class="fatos">
+          {oferta.avaliacao !== undefined && (
+            <li>
+              <svg class="estrela" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                <path
+                  d="M10 1.6l2.47 5.26 5.53.82-4 4.06.95 5.76L10 14.8l-4.95 2.7.95-5.76-4-4.06 5.53-.82z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span class="numeros">
+                {oferta.avaliacao.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}
+                {oferta.avaliacoes !== undefined && ` (${oferta.avaliacoes})`}
+              </span>
+            </li>
+          )}
+          {oferta.ranking && <li>{oferta.ranking}</li>}
+          {selos.map((s) => <li class="selo">{s}</li>)}
+          {oferta.loja && <li>Vendido por {oferta.loja}</li>}
+        </ul>
+      )
+    }
+
+    <a class="cta" href={oferta.href} rel="sponsored nofollow noopener">
+      Pegar no Mercado Livre
+      <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+        <path
+          d="M4 10h11M11 5l5 5-5 5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+      </svg>
+    </a>
+
+    <p class="nota">{nota}</p>
+  </div>
+</article>
+
+<style>
+  .oferta {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--fundo-elevado);
+    border-radius: var(--raio);
+    box-shadow: var(--sombra);
+  }
+
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .foto {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    background: radial-gradient(
+      ellipse at 50% 40%,
+      var(--superficie-alta),
+      var(--superficie) 75%
+    );
+  }
+
+  .foto img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    padding: var(--e-4);
+  }
+
+  .inicial {
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: 4rem;
+    color: var(--texto-tenue);
+  }
+
+  .desconto {
+    position: absolute;
+    top: var(--e-3);
+    left: var(--e-3);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: var(--cta);
+    color: var(--cta-texto);
+    font-size: 0.8125rem;
+    font-weight: 700;
+  }
+
+  .corpo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-2);
+    padding: var(--e-4) var(--e-4) var(--e-6);
+  }
+
+  h3 {
+    margin: 0;
+    font-family: var(--fonte-display);
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    color: var(--texto);
+    text-wrap: balance;
+  }
+
+  .precos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--e-1) var(--e-3);
+    margin: var(--e-1) 0 0;
+  }
+
+  .de {
+    font-size: 0.9375rem;
+    color: var(--texto-tenue);
+    text-decoration: line-through;
+  }
+
+  .por {
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: 2rem;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--texto);
+  }
+
+  .parcelas {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--texto-suave);
+  }
+
+  .fatos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--e-1) var(--e-3);
+    margin: var(--e-1) 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.875rem;
+    color: var(--texto-suave);
+  }
+
+  .fatos li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .fatos .selo {
+    padding: 0.1rem 0.55rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--marca) 16%, transparent);
+    color: var(--marca);
+    font-weight: 600;
+  }
+
+  .estrela {
+    width: 1rem;
+    height: 1rem;
+    color: var(--marca);
+  }
+
+  /* O botão é o único link do card, esticado sobre ele todo: um toque em
+     qualquer lugar leva ao anúncio, e leitor de tela ouve um destino só. */
+  .cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--e-2);
+    margin-top: var(--e-3);
+    min-height: 3rem; /* alvo de toque de 48px */
+    padding: 0.8rem 1.25rem;
+    border-radius: 999px;
+    background: var(--cta);
+    color: var(--cta-texto);
+    font-size: 1rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 0.15s, transform 0.15s;
+  }
+
+  .cta::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .cta:hover {
+    background: var(--cta-hover);
+  }
+
+  .cta:active {
+    transform: scale(0.99);
+  }
+
+  .cta svg {
+    width: 1.1em;
+    height: 1.1em;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cta:hover svg {
+    transform: translateX(3px);
+  }
+
+  .nota {
+    margin: var(--e-1) 0 0;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--texto-tenue);
+  }
+</style>

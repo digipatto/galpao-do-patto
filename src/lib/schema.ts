@@ -2,83 +2,33 @@ import { z } from 'zod';
 
 /**
  * O formato de uma oferta. Validado no build: dado ruim derruba o build com
- * mensagem clara, em vez de virar card quebrado no ar.
+ * mensagem apontando o campo, em vez de virar card quebrado no ar.
+ *
+ * Tudo que é prova social (nota, avaliações, ranking) é COPIADO do anúncio,
+ * nunca estimado. Campo que você não conferiu, deixe de fora: o card só mostra
+ * o que existe.
  */
 
-/** Metadado de cor e filtro. Não separa o site em seções. */
-export const NICHOS = [
-  'eletronicos',
-  'casa',
-  'beleza',
-  'informatica',
-  'ferramentas',
-  'automotivo',
-  'pet',
-  'fitness',
-  'curiosos',
-] as const;
-
-export type Nicho = (typeof NICHOS)[number];
-
-/** Como cada nicho aparece pro visitante. */
-export const ROTULO_NICHO: Record<Nicho, string> = {
-  eletronicos: 'Eletrônicos',
-  casa: 'Casa',
-  beleza: 'Beleza',
-  informatica: 'Informática',
-  ferramentas: 'Ferramentas',
-  automotivo: 'Automotivo',
-  pet: 'Pet',
-  fitness: 'Fitness',
-  curiosos: 'Curiosos',
-};
+const data = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'use o formato AAAA-MM-DD');
 
 export const esquemaOferta = z
   .object({
-    /** Slug legível e único. Vira a URL: /go/fone-qcy-anc */
+    /** Slug legível e único. Vira o endereço do botão: /go/<id> */
     id: z
       .string()
       .min(2)
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'use minúsculas, números e hífens (ex.: "fone-qcy-anc")'),
     titulo: z.string().min(3).max(120),
     preco: z.number().positive(),
-    /** Preço cheio, pra calcular o desconto. Opcional. */
+    /** Preço cheio. Gera o desconto e a economia. */
     precoDe: z.number().positive().optional(),
-    nicho: z.enum(NICHOS),
+
     loja: z.string().min(1).optional(),
-    /** Selo "Full" do Mercado Livre (entrega rápida). */
-    full: z.boolean().optional(),
-    /** SEU link de afiliado. Nunca aparece na página — só atrás de /go/[id]. */
-    linkAfiliado: z.url(),
-    /**
-     * Foto do produto: URL completa (ex.: a do Mercado Livre) ou caminho local
-     * a partir de public/ (ex.: "/produtos/fone.png").
-     * Sem ela o card usa um fundo da cor do nicho — não quebra.
-     */
-    img: z
-      .union([z.url(), z.string().regex(/^\/[^\s]+$/, 'caminho local tem que começar com "/"')])
-      .optional(),
-    /** Data de publicação (YYYY-MM-DD). Define a ordem da vitrine. */
-    criadoEm: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'use o formato AAAA-MM-DD'),
-
-    /* ---------- prova social ----------
-       Tudo opcional e tudo COPIADO do anúncio, nunca estimado. Campo que você
-       não conferiu, deixe de fora: a página só mostra o que existe. */
-
-    /** Nota do anúncio, de 0 a 5. */
-    avaliacao: z.number().min(0).max(5).optional(),
-    /** Quantas avaliações sustentam a nota. Nota sem volume não prova nada. */
-    avaliacoes: z.number().int().nonnegative().optional(),
-    /** Selo de loja oficial do Mercado Livre. */
     lojaOficial: z.boolean().optional(),
-    /** Volume de vendas do vendedor, como o anúncio escreve (ex.: "+10 mil"). */
-    vendasVendedor: z.string().min(1).optional(),
-    /** Posição em ranking, como o anúncio escreve. */
-    ranking: z.string().min(1).optional(),
-    /** Frete grátis anunciado. */
     freteGratis: z.boolean().optional(),
+    /** Selo Full do Mercado Livre. */
+    full: z.boolean().optional(),
 
-    /** Parcelamento anunciado. */
     parcelas: z
       .object({
         vezes: z.number().int().min(2),
@@ -87,18 +37,24 @@ export const esquemaOferta = z
       })
       .optional(),
 
-    /** Ficha do produto: o que importa pra decidir, não o datasheet inteiro. */
-    especificacoes: z
-      .array(z.object({ rotulo: z.string().min(1), valor: z.string().min(1) }))
-      .max(8)
+    avaliacao: z.number().min(0).max(5).optional(),
+    /** Quantas avaliações sustentam a nota. Nota sem volume não prova nada. */
+    avaliacoes: z.number().int().nonnegative().optional(),
+    /** Posição em ranking, como o anúncio escreve. */
+    ranking: z.string().min(1).optional(),
+
+    /** URL completa ou caminho a partir de public/ (ex.: "/produtos/fone.webp"). */
+    img: z
+      .union([z.url(), z.string().regex(/^\/[^\s]+$/, 'caminho local tem que começar com "/"')])
       .optional(),
 
-    /** Quando você conferiu preço e anúncio (AAAA-MM-DD). Aparece na página:
-        promessa de preço sem data é promessa vazia. */
-    conferidoEm: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'use o formato AAAA-MM-DD')
-      .optional(),
+    /** SEU link de afiliado. Nunca aparece no HTML: só atrás de /go/<id>. */
+    linkAfiliado: z.url(),
+
+    /** Data da publicação. Define a ordem do feed (mais nova no topo). */
+    criadoEm: data,
+    /** Quando você conferiu o preço. Aparece no card. */
+    conferidoEm: data.optional(),
   })
   .refine((o) => o.precoDe === undefined || o.precoDe > o.preco, {
     message: 'precoDe tem que ser MAIOR que preco — senão não é desconto',
