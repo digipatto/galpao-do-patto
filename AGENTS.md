@@ -5,10 +5,14 @@
 ## O que é
 
 A página do perfil **@achadoseofertas.patto** (Instagram, "Patto | Achados &
-Ofertas"). Uma página só: o perfil em cima, o feed de ofertas embaixo, numa
-coluna de largura de celular. Cada oferta postada no Instagram vira um card
-com o botão pro Mercado Livre. A página cresce sozinha conforme ofertas entram
-em `src/data/ofertas.json`.
+Ofertas"). Uma página só, minimalista, numa coluna de largura de celular:
+avatar, tagline, **um botão** ("Ver todas as ofertas") que leva à vitrine geral
+de afiliado no Mercado Livre. Conforme ofertas entram em `src/data/ofertas.json`,
+um feed de cards aparece embaixo do botão, cada card com o seu próprio botão
+pro anúncio.
+
+Sem ofertas, a página é só a primeira tela: identidade, uma frase, um botão.
+Não existe "estado vazio" separado, porque o botão já tem pra onde levar.
 
 - URL: https://achadoseofertaspatto.netlify.app (está na bio do Instagram)
 - Tagline (da bio): **"Eu garimpo. Você economiza."**
@@ -18,8 +22,11 @@ em `src/data/ofertas.json`.
 
 1. **`src/data/ofertas.json` é a fonte única.** Adicionar oferta = uma entrada
    no JSON. Nenhuma página lê o arquivo direto: tudo passa por `src/lib/ofertas.ts`.
-2. **Link de afiliado só via `/go/[id]`.** O `linkAfiliado` nunca aparece no
+2. **Link de afiliado só via `/go/...`.** Nenhum link de afiliado aparece no
    HTML. Redirect 302 — é onde a contagem de cliques entra um dia.
+   `/go/todas` leva à vitrine geral (`SITE.vitrineAfiliado` em `src/lib/site.ts`,
+   o link `mercadolivre.com/sec/...` que lista todos os produtos do dono);
+   `/go/<id>` leva ao link de uma oferta. `todas` é id reservado.
 3. **Dado inválido derruba o build** (Zod), com mensagem apontando o campo.
 4. **0 KB de JavaScript no visitante.** A página é HTML + CSS. React, three.js,
    shadcn, Kokonut e Motion estão instalados, **parados, de propósito**. Não
@@ -34,7 +41,13 @@ em `src/data/ofertas.json`.
 8. **O site é escuro, sempre.** Não seguir `prefers-color-scheme`.
 9. **Não usar a foto de perfil atual do Instagram no site**: ela tem a logo e o
    crachá "Mercado Livre Afiliados", que sugeririam vínculo oficial.
-10. **Design passa pelo Impeccable.** Antes de editar UI, ler
+10. **Menos é mais: um objetivo, um botão principal, todos pro Mercado Livre.**
+    O único caminho de volta pro Instagram é um link de texto no rodapé, nunca
+    um botão. (A versão anterior tinha "Seguir no Instagram" como botão
+    principal: mandava o visitante de volta pra onde ele veio.) Antes de
+    acrescentar um bloco, perguntar o que ele diz que a página já não disse.
+    Cortado de propósito: lista de garantias, FAQ, card de estado vazio.
+11. **Design passa pelo Impeccable.** Antes de editar UI, ler
     `.claude/skills/impeccable/reference/craft-floor.md`; depois, rodar
     `.claude/skills/impeccable/scripts/impeccable detect --json <arquivos>`.
     Proibido: kicker acima de heading, grade de cards iguais como estrutura de
@@ -47,10 +60,11 @@ src/
   data/ofertas.json        FONTE ÚNICA das ofertas (começa vazio: [])
   lib/schema.ts            Zod: formato de uma oferta
   lib/ofertas.ts           carrega, valida, deriva (desconto, economia, href)
+  lib/site.ts              nome, Instagram e a vitrine geral de afiliado
   components/Oferta.astro  um card do feed
   layouts/Base.astro       <head>, OG, rodapé com aviso de afiliado
-  pages/index.astro        perfil + feed (ou estado vazio) + FAQ
-  pages/go/[id].ts         302 -> linkAfiliado (roda no servidor)
+  pages/index.astro        primeira tela (avatar, tagline, botão) + feed
+  pages/go/[id].ts         302 pra vitrine (/go/todas) ou oferta (roda no servidor)
   pages/og.astro           gerador da imagem de compartilhamento (noindex)
   styles/tokens.css        cores, tipografia, espaçamento
 public/
@@ -74,6 +88,18 @@ Campos: `id` (slug único), `titulo`, `preco`, `precoDe?`, `loja?`,
 **O ML bloqueia leitura automatizada** (403 no fetch, "não encontrado" até no
 Chrome headless, API exige token). Preço, título e foto vêm do usuário (print
 ou texto), nunca de scraping.
+
+## Skills de agente (locais, fora do git; reinstalar com `npx skills add`)
+
+- `impeccable` (pbakaus/impeccable): design. `distill` pra enxugar, `craft-floor`
+  antes de editar UI, `detect` depois.
+- `cro`, `copywriting`, `marketing-psychology` (coreyhaines31/marketingskills):
+  conversão e copy. As três são só texto, sem scripts nem rede (lidas antes de
+  instalar). A `marketing-psychology` **não** proíbe urgência falsa nem prova
+  social inventada: quem proíbe é a regra 6 deste arquivo.
+- `landing-page-generator` (borghei/Claude-Skills): auditoria com 3 scripts
+  Python. Rodar com `python -X utf8`. Os scripts medem posição de caractere no
+  HTML (não a renderizada) e procuram termos em inglês: conferir no print.
 
 ## Imagem de compartilhamento
 

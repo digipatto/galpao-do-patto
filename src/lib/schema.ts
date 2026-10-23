@@ -17,7 +17,10 @@ export const esquemaOferta = z
     id: z
       .string()
       .min(2)
-      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'use minúsculas, números e hífens (ex.: "fone-qcy-anc")'),
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'use minúsculas, números e hífens (ex.: "fone-qcy-anc")')
+      // "todas" é o endereço da vitrine geral (/go/todas). Uma oferta com esse
+      // id seria engolida por ela.
+      .refine((id) => id !== 'todas', { message: '"todas" é reservado pra vitrine geral, escolha outro id' }),
     titulo: z.string().min(3).max(120),
     preco: z.number().positive(),
     /** Preço cheio. Gera o desconto e a economia. */

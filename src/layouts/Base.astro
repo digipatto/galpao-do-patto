@@ -1,5 +1,6 @@
 ---
 import '../styles/tokens.css';
+import { SITE } from '../lib/site';
 
 interface Props {
   titulo: string;
@@ -54,19 +55,15 @@ const anoAtual = new Date().getFullYear();
 
     <footer class="rodape">
       <div class="coluna">
-        <p class="rodape-marca">Achados &amp; Ofertas</p>
-        <p>
-          Sigo no Instagram:
-          <a href="https://instagram.com/achadoseofertas.patto" rel="me noopener" target="_blank"
-            >@achadoseofertas.patto</a
-          >
+        <p class="instagram">
+          <a href={SITE.instagram} rel="me noopener" target="_blank">{SITE.arroba}</a>
         </p>
         <p class="miudo">
-          Os links de produto são de afiliado: se você comprar por eles, posso
-          receber uma comissão do Mercado Livre, sem custo a mais pra você. Não
-          tenho vínculo com o Mercado Livre além do programa de afiliados. Preço
-          e disponibilidade mudam sem aviso: vale o que está na página do
-          anúncio. © {anoAtual}
+          Os links são de afiliado: se você comprar por eles, posso receber uma
+          comissão do Mercado Livre, sem custo a mais pra você. Não tenho
+          vínculo com o Mercado Livre além do programa de afiliados. Preço e
+          disponibilidade mudam sem aviso: vale o que está na página do
+          anúncio. © {anoAtual} {SITE.nome}
         </p>
       </div>
     </footer>
@@ -88,24 +85,23 @@ const anoAtual = new Date().getFullYear();
   }
 
   .rodape p {
-    margin: 0 0 var(--e-2);
+    margin: 0 0 var(--e-3);
+    text-align: center;
   }
 
-  .rodape-marca {
-    font-family: var(--fonte-display);
-    font-weight: 600;
-    font-size: 1.0625rem;
-    letter-spacing: -0.01em;
-    color: var(--texto);
-  }
-
+  /* Único caminho de volta pro Instagram: texto, não botão. O botão da
+     página é um só e leva pro Mercado Livre. */
   .rodape a {
+    color: var(--texto-suave);
+    text-decoration-color: var(--borda-forte);
+  }
+  .rodape a:hover {
     color: var(--marca);
   }
 
   .rodape .miudo {
-    margin-top: var(--e-4);
-    font-size: 0.8125rem;
+    margin: 0;
+    font-size: 0.75rem;
     line-height: 1.6;
     text-wrap: pretty;
   }

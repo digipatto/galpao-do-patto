@@ -2,125 +2,54 @@
 import Base from '../layouts/Base.astro';
 import Oferta from '../components/Oferta.astro';
 import { listarOfertas } from '../lib/ofertas';
+import { SITE } from '../lib/site';
 
 // Dado inválido estoura aqui e o build para, de propósito.
 const ofertas = listarOfertas();
-
-const INSTAGRAM = 'https://instagram.com/achadoseofertas.patto';
-
-const perguntas = [
-  {
-    q: 'Eu pago mais caro pelo seu link?',
-    a: 'Não. O preço é o do anúncio. Se eu ganho alguma coisa, é uma comissão que o Mercado Livre paga, não você.',
-  },
-  {
-    q: 'O preço ainda vale?',
-    a: 'Cada oferta mostra a data em que o preço foi conferido. No Mercado Livre o preço muda sozinho, então confira na página do anúncio antes de fechar.',
-  },
-  {
-    q: 'Quem vende e entrega?',
-    a: 'A compra é no Mercado Livre, com o vendedor do anúncio. Pagamento, nota fiscal, garantia, troca e devolução seguem as regras deles. Eu só indico.',
-  },
-];
 ---
 
 <Base
   titulo="Achados & Ofertas — eu garimpo, você economiza"
-  descricao="Ofertas do Mercado Livre garimpadas pelo Patto, com o link direto de cada uma. Tudo que sai no Instagram aparece aqui."
+  descricao="Todas as ofertas que o Patto garimpou no Mercado Livre, num lugar só. Link direto, mesmo preço do anúncio."
 >
   <div class="coluna">
-    <header class="perfil">
-      <div class="perfil-topo">
-        <div class="avatar">
-          <img
-            src="/marca/patto.webp"
-            alt="Patto, o pato de terno do Achados & Ofertas"
-            width="96"
-            height="96"
-            fetchpriority="high"
-          />
-        </div>
-        <div>
-          <p class="nome">Achados &amp; Ofertas</p>
-          <a class="arroba" href={INSTAGRAM} rel="me noopener" target="_blank">
-            @achadoseofertas.patto
-          </a>
-        </div>
+    <header class="abertura">
+      <div class="avatar">
+        <img
+          src="/marca/patto.webp"
+          alt="Patto, o pato de terno do Achados & Ofertas"
+          width="104"
+          height="104"
+          fetchpriority="high"
+        />
       </div>
 
-      <h1>Eu garimpo.<br />Você economiza.</h1>
-      <p class="bio">
-        Garimpo ofertas no Mercado Livre e deixo aqui o link direto de cada uma.
-        Toca, confere o preço no anúncio e pronto.
-      </p>
+      <p class="marca">{SITE.nome}</p>
 
-      <ul class="garantias">
-        <li>
-          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"
-            ><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg
-          >
-          Mesmo preço do anúncio
-        </li>
-        <li>
-          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"
-            ><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg
-          >
-          Link direto pro Mercado Livre
-        </li>
-        <li>
-          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"
-            ><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg
-          >
-          Sem cadastro
-        </li>
-      </ul>
+      <h1>Eu garimpo.<br />Você economiza.</h1>
+      <p class="sub">Todas as ofertas que garimpei no Mercado Livre, num lugar só.</p>
+
+      <a class="cta" href="/go/todas" rel="sponsored nofollow noopener">
+        Ver todas as ofertas
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"
+          ><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg
+        >
+      </a>
+      <p class="micro">Abre no Mercado Livre. Link de afiliado, mesmo preço do anúncio.</p>
     </header>
 
-    <section class="feed" aria-labelledby="t-feed">
-      {
-        ofertas.length === 0 ? (
-          <div class="vazio">
-            <h2 id="t-feed">As primeiras ofertas estão chegando.</h2>
-            <p>
-              Toda oferta que eu posto no Instagram aparece aqui, com o link
-              direto pro Mercado Livre. Segue lá pra não perder a primeira.
-            </p>
-            <a class="botao-ig" href={INSTAGRAM} rel="me noopener" target="_blank">
-              Seguir no Instagram
-            </a>
+    {
+      ofertas.length > 0 && (
+        <section class="feed" aria-labelledby="t-feed">
+          <h2 id="t-feed">Últimas ofertas</h2>
+          <div class="lista">
+            {ofertas.map((oferta) => (
+              <Oferta oferta={oferta} />
+            ))}
           </div>
-        ) : (
-          <>
-            <h2 id="t-feed">Últimas ofertas</h2>
-            <div class="lista">
-              {ofertas.map((oferta) => (
-                <Oferta oferta={oferta} />
-              ))}
-            </div>
-            <a class="mais" href={INSTAGRAM} rel="me noopener" target="_blank">
-              Tem mais no Instagram
-            </a>
-          </>
-        )
-      }
-    </section>
-
-    <section class="faq" aria-labelledby="t-faq">
-      <h2 id="t-faq">Antes de perguntar</h2>
-      {
-        perguntas.map((p) => (
-          <details>
-            <summary>
-              {p.q}
-              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"
-                ><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg
-              >
-            </summary>
-            <p>{p.a}</p>
-          </details>
-        ))
-      }
-    </section>
+        </section>
+      )
+    }
   </div>
 </Base>
 
@@ -130,34 +59,33 @@ const perguntas = [
     margin-inline: auto;
   }
 
-  h2 {
-    margin: 0 0 var(--e-4);
-    font-family: var(--fonte-display);
-    font-weight: 600;
-    font-size: 1.5rem;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    color: var(--texto);
-    text-wrap: balance;
-  }
-
-  /* ---------- perfil ---------- */
-
-  .perfil {
-    padding: var(--e-12) 0 var(--e-8);
-  }
-
-  .perfil-topo {
+  /* A primeira tela é a página inteira enquanto não há ofertas: identidade,
+     uma frase, um botão. Centralizada na vertical pra o botão cair onde o
+     polegar está. */
+  .abertura {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: var(--e-4);
-    margin-bottom: var(--e-6);
+    justify-content: center;
+    min-height: min(82svh, 44rem);
+    padding: var(--e-12) 0;
+    text-align: center;
+    /* O único movimento da página: a abertura assenta uma vez. O estado padrão
+       (sem animação) já é totalmente visível. */
+    animation: assenta 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  /* Anel do avatar, como o do perfil do Instagram: uma cor só, com folga. */
+  @keyframes assenta {
+    from {
+      transform: translateY(0.75rem);
+      opacity: 0;
+    }
+  }
+
+  /* Anel como o do perfil do Instagram: uma cor só, com folga. */
   .avatar {
-    flex: 0 0 auto;
     padding: 4px;
+    margin-bottom: var(--e-4);
     border-radius: 50%;
     background: var(--fundo);
     box-shadow: 0 0 0 3px var(--marca);
@@ -165,182 +93,100 @@ const perguntas = [
 
   .avatar img {
     display: block;
-    width: 5.5rem;
-    height: 5.5rem;
+    width: 6.5rem;
+    height: 6.5rem;
     border-radius: 50%;
     object-fit: cover;
   }
 
-  .nome {
-    margin: 0;
-    font-family: var(--fonte-display);
-    font-weight: 600;
-    font-size: 1.375rem;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    color: var(--texto);
-  }
-
-  .arroba {
+  .marca {
+    margin: 0 0 var(--e-8);
     font-size: 0.9375rem;
+    font-weight: 500;
     color: var(--texto-tenue);
-    text-decoration: none;
-  }
-  .arroba:hover {
-    color: var(--marca);
   }
 
-  .perfil h1 {
-    margin: 0 0 var(--e-3);
+  h1 {
+    margin: 0 0 var(--e-4);
     font-family: var(--fonte-display);
     font-weight: 700;
-    font-size: clamp(2.5rem, 12vw, 3.5rem);
+    font-size: clamp(2.125rem, 10.6vw, 3.75rem);
     line-height: 1;
     letter-spacing: -0.035em;
     color: var(--texto);
   }
 
-  .bio {
-    margin: 0 0 var(--e-6);
-    max-width: 38ch;
-    font-size: 1.0625rem;
-    line-height: 1.55;
+  .sub {
+    margin: 0 0 var(--e-8);
+    max-width: 28ch;
+    font-size: 1.125rem;
+    line-height: 1.5;
     color: var(--texto-suave);
-    text-wrap: pretty;
+    text-wrap: balance;
   }
 
-  .garantias {
-    display: flex;
-    flex-direction: column;
-    gap: var(--e-2);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    font-size: 0.9375rem;
-    color: var(--texto-suave);
-  }
-
-  .garantias li {
+  .cta {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: var(--e-2);
+    width: min(100%, 22rem);
+    min-height: 3.5rem;
+    padding: 0.9rem 1.5rem;
+    border-radius: 999px;
+    background: var(--cta);
+    color: var(--cta-texto);
+    font-size: 1.0625rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 0.15s, transform 0.15s;
   }
 
-  .garantias svg {
-    flex: 0 0 auto;
-    width: 1.1rem;
-    height: 1.1rem;
-    color: var(--marca);
+  .cta:hover {
+    background: var(--cta-hover);
   }
 
-  /* ---------- feed ---------- */
+  .cta:active {
+    transform: scale(0.99);
+  }
+
+  .cta svg {
+    width: 1.15em;
+    height: 1.15em;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cta:hover svg {
+    transform: translateX(3px);
+  }
+
+  .micro {
+    margin: var(--e-3) 0 0;
+    max-width: 30ch;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--texto-tenue);
+    text-wrap: balance;
+  }
+
+  /* ---------- feed (só existe quando há ofertas) ---------- */
 
   .feed {
-    padding: var(--e-4) 0 var(--e-8);
+    padding: var(--e-8) 0 0;
+  }
+
+  .feed h2 {
+    margin: 0 0 var(--e-6);
+    text-align: center;
+    font-family: var(--fonte-display);
+    font-weight: 600;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    color: var(--texto);
   }
 
   .lista {
     display: grid;
     gap: var(--e-6);
-  }
-
-  .mais {
-    display: block;
-    margin-top: var(--e-6);
-    padding: var(--e-3);
-    text-align: center;
-    font-weight: 600;
-    color: var(--marca);
-  }
-  .mais:hover {
-    color: var(--marca-clara);
-  }
-
-  /* Estado vazio: é o estado de HOJE, não um erro. Tem que ser uma página
-     boa, e o único gesto útil é seguir o perfil. */
-  .vazio {
-    padding: var(--e-8) var(--e-6);
-    background: var(--fundo-elevado);
-    border-radius: var(--raio);
-    box-shadow: var(--sombra);
-  }
-
-  .vazio h2 {
-    font-size: 1.625rem;
-  }
-
-  .vazio p {
-    margin: 0 0 var(--e-6);
-    line-height: 1.6;
-    color: var(--texto-suave);
-    text-wrap: pretty;
-  }
-
-  .botao-ig {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 3rem;
-    padding: 0.8rem 1.5rem;
-    border-radius: 999px;
-    background: var(--marca);
-    color: var(--marca-texto);
-    font-weight: 700;
-    text-decoration: none;
-    transition: background-color 0.15s, transform 0.15s;
-  }
-  .botao-ig:hover {
-    background: var(--marca-clara);
-  }
-  .botao-ig:active {
-    transform: scale(0.99);
-  }
-
-  /* ---------- faq ---------- */
-
-  .faq {
-    padding: var(--e-8) 0 0;
-  }
-
-  .faq details {
-    border-bottom: 1px solid var(--borda);
-  }
-
-  .faq summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--e-4);
-    min-height: 3rem;
-    padding: var(--e-3) 0;
-    font-weight: 600;
-    color: var(--texto);
-    cursor: pointer;
-    list-style: none;
-  }
-  .faq summary::-webkit-details-marker {
-    display: none;
-  }
-  .faq summary:hover {
-    color: var(--marca);
-  }
-
-  .faq summary svg {
-    flex: 0 0 auto;
-    width: 1.1rem;
-    height: 1.1rem;
-    color: var(--texto-tenue);
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .faq details[open] summary svg {
-    transform: rotate(180deg);
-    color: var(--marca);
-  }
-
-  .faq details p {
-    margin: 0 0 var(--e-4);
-    line-height: 1.65;
-    color: var(--texto-suave);
-    text-wrap: pretty;
   }
 </style>

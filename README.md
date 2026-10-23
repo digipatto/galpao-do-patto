@@ -53,6 +53,17 @@ Campo errado **derruba o build** com uma mensagem apontando qual campo e por qu�
 
 ---
 
+## O botão principal
+
+O botão "Ver todas as ofertas" leva à vitrine geral de afiliado (o link
+`mercadolivre.com/sec/...` que lista todos os produtos que você gerou). Ele passa
+por `/go/todas`, então o link não aparece no HTML. Pra trocar o destino, edite
+`vitrineAfiliado` em [`src/lib/site.ts`](./src/lib/site.ts).
+
+`todas` é um id reservado: nenhuma oferta pode se chamar assim.
+
+---
+
 ## Rodar local
 
 Precisa de Node 22.12+ e npm.
