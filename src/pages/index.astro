@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import Oferta from '../components/Oferta.astro';
+import HeroGalpao from '../components/hero/HeroGalpao';
 import type { Oferta as TipoOferta } from '../lib/ofertas';
 import { listarOfertas } from '../lib/ofertas';
 
@@ -22,6 +23,23 @@ if (prateleiras.length === 0) prateleiras.push([]);
   descricao="Sou o Patto, seu garimpeiro oficial. Achados reais do Mercado Livre, com o link direto de cada um, no meu galpão de ofertas."
 >
   <div class="coluna">
+    <!-- Hero compacto: a entrada do galpão. O poster (HTML puro) já está aqui na
+         primeira pintura; no desktop a cena 3D entra por cima dele. No celular o
+         poster fica e nenhum JS é baixado. Altura baixa de propósito: a oferta e
+         os botões continuam na primeira tela. -->
+    <div class="hero" aria-hidden="true">
+      <img
+        class="hero-poster"
+        src="/hero/poster.webp"
+        width="1088"
+        height="288"
+        alt=""
+        fetchpriority="high"
+        decoding="async"
+      />
+      <HeroGalpao client:media="(min-width: 48rem)" />
+    </div>
+
     <!-- A copy é a bio do Instagram, palavra por palavra: quem clica na bio tem
          que reconhecer a promessa ao chegar. -->
     <header class="placa">
@@ -51,6 +69,9 @@ if (prateleiras.length === 0) prateleiras.push([]);
             ))}
             {Array.from({ length: POR_PRATELEIRA - par.length }).map(() => (
               <div class="vaga" aria-hidden="true">
+                <svg viewBox="0 0 20 20" focusable="false"
+                  ><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg
+                >
                 <span>Vaga livre</span>
               </div>
             ))}
@@ -87,6 +108,52 @@ if (prateleiras.length === 0) prateleiras.push([]);
     margin-inline: auto;
   }
 
+  /* ---------- hero (entrada do galpão) ---------- */
+
+  .hero {
+    position: relative;
+    overflow: hidden;
+    margin-top: 0.75rem;
+    height: clamp(3.5rem, 9svh, 9rem);
+    border-radius: var(--raio-sm);
+    background: var(--fundo-elevado);
+  }
+
+  /* Celular minúsculo (320×568): não sobra nem um pixel. A oferta e os botões
+     valem mais que o hero (regra 11), então ele some. */
+  @media (max-height: 600px) {
+    .hero {
+      display: none;
+    }
+  }
+
+  /* Desktop sobra tela: o hero respira mais, sem empurrar a oferta. */
+  @media (min-width: 48rem) {
+    .hero {
+      height: clamp(5.5rem, 14svh, 10rem);
+    }
+  }
+
+  .hero-poster,
+  .hero :global(.hero-3d),
+  .hero :global(.hero-3d canvas) {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-poster {
+    object-fit: cover;
+    object-position: center 45%;
+  }
+
+  /* Nunca captura toque: o hero é vitrine, não controle. */
+  .hero :global(.hero-3d) {
+    pointer-events: none;
+  }
+
   /* ---------- placa de corredor ---------- */
 
   .placa {
@@ -94,8 +161,9 @@ if (prateleiras.length === 0) prateleiras.push([]);
     display: flex;
     align-items: center;
     gap: var(--e-3);
-    margin-top: 1.25rem;
+    margin-top: 1rem;
     padding: var(--e-2) var(--e-3);
+    z-index: 1;
     background: var(--superficie);
     border-radius: var(--raio-sm);
     box-shadow: var(--sombra);
@@ -108,7 +176,7 @@ if (prateleiras.length === 0) prateleiras.push([]);
     position: absolute;
     bottom: 100%;
     width: 2px;
-    height: 1.25rem;
+    height: 1rem;
     background: var(--borda-forte);
   }
   .placa::before {
@@ -197,6 +265,14 @@ if (prateleiras.length === 0) prateleiras.push([]);
     padding: var(--e-3) var(--e-2) 0;
   }
 
+  /* Celular baixo (375×667): a prateleira cola mais na placa pra o botão vermelho
+     não ficar atrás da barra. */
+  @media (max-height: 700px) {
+    .prateleira {
+      padding-top: var(--e-2);
+    }
+  }
+
   .prateleira + .prateleira {
     margin-top: var(--e-1);
   }
@@ -219,9 +295,16 @@ if (prateleiras.length === 0) prateleiras.push([]);
     align-self: end;
     display: grid;
     place-items: center;
+    align-content: center;
+    gap: var(--e-1);
     min-height: 7rem;
     margin-right: 0.625rem;
     border: 2px dashed var(--borda-forte);
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent 0 0.5rem,
+      color-mix(in srgb, var(--borda-forte) 14%, transparent) 0.5rem 0.625rem
+    );
     color: var(--texto-tenue);
     font-size: 0.75rem;
     font-weight: 600;
@@ -229,12 +312,18 @@ if (prateleiras.length === 0) prateleiras.push([]);
     text-transform: uppercase;
   }
 
+  .vaga svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    opacity: 0.8;
+  }
+
   /* ---------- piso ---------- */
 
   .piso {
     display: block;
     width: 100%;
-    height: 4.5rem;
+    height: clamp(2.25rem, 8svh, 4.5rem);
     color: var(--faixa-piso);
     opacity: 0.5;
   }

@@ -26,6 +26,9 @@
   --p-terno: #35578c;
   --p-terno-claro: #4a70ab;
 
+  /* ciano do letreiro holográfico do hero (só na cena 3D e no poster) */
+  --p-holo: #5ad7f0;
+
   --p-camisa: #f6f2ea;
   --p-camisa-suave: #c5ccd9;
   --p-camisa-tenue: #8a96ab;
@@ -71,6 +74,8 @@
   --caixa-lado: var(--p-tinta-900);
   --fita: var(--p-bico);
   --faixa-piso: var(--p-bico);
+
+  --holo: var(--p-holo);
 
   --fonte-display: "Clash Display", "Satoshi", ui-sans-serif, system-ui, sans-serif;
   --fonte-corpo: "Satoshi", ui-sans-serif, system-ui, -apple-system, sans-serif;

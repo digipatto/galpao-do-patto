@@ -6,7 +6,8 @@ oferta postada no Instagram vira um card com o botão pro anúncio.
 
 Site: https://achadoseofertaspatto.netlify.app
 
-HTML e CSS estáticos, **0 KB de JavaScript** no visitante.
+HTML e CSS estáticos. **0 KB de JavaScript no celular**; no desktop, o hero 3D
+(three + GSAP, ~225 KB gzip) carrega só a partir de 768px.
 
 ---
 
@@ -99,8 +100,8 @@ O Netlify builda e publica a cada push. O `netlify.toml` já tem o build
 ## Stack
 
 Astro 7, TypeScript, Zod e `@astrojs/netlify`. Tailwind v4 entra só pelo reset.
-React, three.js, shadcn, Kokonut UI e Motion estão instalados mas **não são
-usados** — ficam prontos pra quando fizerem falta. Versões exatas no
+React, three.js e GSAP rodam só no hero 3D do desktop. Shadcn, Kokonut UI e
+Motion estão instalados mas **não são usados**. Versões exatas no
 `package.json`.
 
 Convenções do projeto: [`CLAUDE.md`](./CLAUDE.md).

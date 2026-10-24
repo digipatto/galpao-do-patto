@@ -29,9 +29,11 @@ seu botão vermelho "Pegar oferta". Conforme ofertas entram em
    o link `mercadolivre.com/sec/...` que lista todos os produtos do dono);
    `/go/<id>` leva ao link de uma oferta. `todas` é id reservado.
 3. **Dado inválido derruba o build** (Zod), com mensagem apontando o campo.
-4. **0 KB de JavaScript no visitante.** A página é HTML + CSS. React, three.js,
-   shadcn, Kokonut e Motion estão instalados, **parados, de propósito**. Não
-   importar nenhum sem o usuário pedir.
+4. **0 KB de JavaScript no celular.** A loja (placa, estante, caixas, barra) é
+   HTML + CSS. O único JS é a ilha do hero 3D (`HeroGalpao`), que só baixa em
+   `min-width: 48rem` (`client:media`): no celular o hero é um poster em `<img>`.
+   Shadcn, Kokonut e Motion continuam parados. Não importar nenhum sem o
+   usuário pedir. GSAP só dentro do hero (`useGSAP`), nunca solto.
 5. **Mobile-first, e o link a UM toque.** O público vem do Instagram, no celular.
    O card inteiro é clicável.
 6. **Nada de prova social inventada.** Nota, avaliações e ranking são copiados
@@ -86,9 +88,26 @@ Peças, todas em CSS puro:
 Foto de produto fica num tom claro (`--foto-fundo`, `multiply`): foto de anúncio
 tem fundo branco e o produto costuma ser escuro.
 
-**Quer WebGL de verdade?** Está instalado (`three`), parado. Custa ~130 KB gzip,
-exige uma ilha React, e é preciso provar que ele não empurra a oferta pra baixo
-da primeira tela.
+## O hero 3D (só desktop; celular tem poster)
+
+Faixa baixa no topo (`.hero`, `clamp(3.5rem, 9svh, 9rem)` no celular e
+`clamp(5.5rem, 14svh, 10rem)` no desktop): a entrada do galpão vista do corredor,
+com estantes (InstancedMesh), fita de LED no teto, parede de vidro, letreiro
+holográfico "Achados & Ofertas" e o Patto como billboard. **Não é 100vh**: a regra
+11 manda (a oferta e os botões ficam na primeira tela). Em `max-height: 600px`
+(320×568) o hero some.
+
+- `src/components/hero/cena.ts`: a cena em three puro (sem R3F, pra pesar menos).
+  Cores lidas dos tokens CSS, nenhum hex. Só no cliente (dynamic import).
+- `src/components/hero/HeroGalpao.tsx`: a ilha. Poster fica embaixo o tempo todo;
+  o canvas entra por cima. Laço pausa fora da tela e com a aba escondida. Sem
+  WebGL ou com `prefers-reduced-motion`, não monta e o poster fica. Entrada com
+  GSAP (`useGSAP`). `pointer-events: none`.
+- `public/hero/poster.webp`: é o que o celular mostra. **Regerar quando mudar a
+  cena**: `npm run build`, servir `dist/`, abrir `/hero-poster` no Edge/Chrome com
+  `--enable-unsafe-swiftshader --use-angle=swiftshader` em 1088×288 e converter
+  pra webp. Cor nova da cena entra como token em `tokens.css` (`--p-holo`).
+- `/hero-poster` é gerador (noindex), como o `/og`.
 
 ## Mapa de pastas
 
@@ -99,12 +118,14 @@ src/
   lib/ofertas.ts           carrega, valida, deriva (desconto, economia, href)
   lib/site.ts              nome, Instagram e a vitrine geral de afiliado
   components/Oferta.astro  uma caixa na prateleira (uma oferta)
+  components/hero/         ilha do hero 3D (cena.ts, HeroGalpao, HeroPoster)
   layouts/Base.astro       <head>, OG, rodapé com aviso de afiliado
   pages/index.astro        placa + estante (prateleiras) + piso + barra "ver todas"
   pages/go/[id].ts         302 pra vitrine (/go/todas) ou oferta (roda no servidor)
   pages/og.astro           gerador da imagem de compartilhamento (noindex)
   styles/tokens.css        cores, tipografia, espaçamento
 public/
+  hero/poster.webp         poster do hero (celular)
   marca/patto.webp         avatar (recorte de cabeça e ombros da arte do Patto)
   produtos/*.webp          foto de cada oferta
   og.jpg, favicon.png, apple-touch-icon.png
