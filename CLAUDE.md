@@ -6,14 +6,17 @@
 
 A página do perfil **@achadoseofertas.patto** (Instagram, "Patto | Achados &
 Ofertas"). Uma página só, numa coluna de largura de celular, **tudo na primeira
-tela**: cabeçalho de uma linha (avatar + nome + tagline), as ofertas logo abaixo
-e, colado no fim da tela, o botão "Ver todas as ofertas" (a vitrine geral de
-afiliado). Cada oferta é uma linha compacta (miniatura, nome, preço) com o seu
-botão vermelho "Pegar no Mercado Livre". Conforme ofertas entram em
-`src/data/ofertas.json`, a lista cresce sozinha.
+tela**, com a cara de um **galpão**: uma placa suspensa com a copy da bio, uma
+estante com uma caixa por oferta (duas por prateleira) e, colado no fim da tela,
+o botão "Ver todas as ofertas" (a vitrine geral de afiliado). Cada caixa tem o
+seu botão vermelho "Pegar oferta". Conforme ofertas entram em
+`src/data/ofertas.json`, a estante ganha prateleiras sozinha.
 
 - URL: https://achadoseofertaspatto.netlify.app (está na bio do Instagram)
-- Tagline (da bio): **"Eu garimpo. Você economiza."**
+- Bio do Instagram, que é a copy do site **palavra por palavra** (quem clica na
+  bio tem que reconhecer a promessa ao chegar): "Sou o Patto, seu garimpeiro
+  oficial · Achados reais do Mercado Livre · Clica e entra no meu galpão 3D de
+  ofertas". Ver também `PRODUCT.md`.
 - Sem blog por enquanto. O artigo antigo está no histórico do git (`5ca6042`).
 
 ## Regras inquebráveis
@@ -50,12 +53,42 @@ botão vermelho "Pegar no Mercado Livre". Conforme ofertas entram em
     explícito do dono: a versão com hero grande escondia o produto abaixo da
     dobra e ele precisava rolar pra achar o primeiro link. Vale de 320×568 a
     390×844. Nunca gastar a primeira tela com identidade; ela cabe em uma linha.
-    Título de card em Satoshi (a Clash Display fecha as letras em 16px).
+    Título de card em Satoshi (a Clash Display fecha as letras em 16px, e em
+    qualquer tamanho pequeno ela fecha o espaço entre palavras: usar
+    `word-spacing` ao usá-la em texto menor que um título grande).
 12. **Design passa pelo Impeccable.** Antes de editar UI, ler
     `.claude/skills/impeccable/reference/craft-floor.md`; depois, rodar
     `.claude/skills/impeccable/scripts/impeccable detect --json <arquivos>`.
     Proibido: kicker acima de heading, grade de cards iguais como estrutura de
     página, gradiente em texto, sombra sem deslocamento.
+
+## O galpão (visual)
+
+O "3D" é **CSS 3D em projeção oblíqua**, não WebGL e não three.js, de propósito:
+
+- A tentativa anterior de galpão em WebGL (R3F, primitivos) parecia um diagrama e
+  foi rejeitada; o histórico dela está nos commits até `c3ecde9`.
+- Projeção oblíqua mantém o texto plano e nítido (sem distorção por rotação) e o
+  botão no toque, com 0 KB de JS e a oferta na primeira tela.
+
+Peças, todas em CSS puro:
+
+- **Placa suspensa** (`.placa`): o cabeçalho, com dois cabos até o teto.
+- **Estante** (`.estante`): montantes azuis (`--montante`, o azul do terno) e uma
+  travessa laranja por prateleira (`--travessa`, o laranja do bico).
+- **Caixa** (`Oferta.astro`): frente plana + topo e lateral inclinados por `skew`
+  (45°). Topo claro com fita laranja, lateral escura (luz vindo de cima). Os
+  tokens são `--caixa-frente/topo/lado` e `--fita`.
+- **Vaga livre**: espaço tracejado quando a prateleira tem uma caixa só.
+- **Piso**: duas faixas de corredor em SVG, convergindo pro fundo.
+- **Movimento**: um só, as caixas assentam na prateleira ao abrir.
+
+Foto de produto fica num tom claro (`--foto-fundo`, `multiply`): foto de anúncio
+tem fundo branco e o produto costuma ser escuro.
+
+**Quer WebGL de verdade?** Está instalado (`three`), parado. Custa ~130 KB gzip,
+exige uma ilha React, e é preciso provar que ele não empurra a oferta pra baixo
+da primeira tela.
 
 ## Mapa de pastas
 
@@ -65,9 +98,9 @@ src/
   lib/schema.ts            Zod: formato de uma oferta
   lib/ofertas.ts           carrega, valida, deriva (desconto, economia, href)
   lib/site.ts              nome, Instagram e a vitrine geral de afiliado
-  components/Oferta.astro  um card do feed
+  components/Oferta.astro  uma caixa na prateleira (uma oferta)
   layouts/Base.astro       <head>, OG, rodapé com aviso de afiliado
-  pages/index.astro        cabeçalho compacto + lista de ofertas + barra "ver todas"
+  pages/index.astro        placa + estante (prateleiras) + piso + barra "ver todas"
   pages/go/[id].ts         302 pra vitrine (/go/todas) ou oferta (roda no servidor)
   pages/og.astro           gerador da imagem de compartilhamento (noindex)
   styles/tokens.css        cores, tipografia, espaçamento
@@ -125,7 +158,7 @@ do Buds 6 Play.
 
 ## Imagem de compartilhamento
 
-`/og` é um gerador, não página de visitante. Pra regerar: `npm run build`,
+`/og` é um gerador (copy da bio + avatar), não página de visitante. Pra regerar: `npm run build`,
 servir `dist/` (`cd dist && python -m http.server 4331`), tirar print de `/og`
 em 1200×630 e salvar como `public/og.jpg`. O Chrome headless tem largura mínima
 de 500px: abaixo disso o print sai recortado e mente.

@@ -6,9 +6,11 @@ interface Props {
   oferta: Oferta;
   /** A primeira oferta está na primeira tela: carrega já, sem lazy. */
   prioridade?: boolean;
+  /** Posição na página, só pra escalonar a entrada das caixas. */
+  ordem?: number;
 }
 
-const { oferta, prioridade = false } = Astro.props;
+const { oferta, prioridade = false, ordem = 0 } = Astro.props;
 
 // "2026-10-24" -> "24/10". Quebra a string em vez de usar Date: new Date() de
 // uma data sem horário vira meia-noite UTC e, no fuso do Brasil, cai no dia
@@ -26,36 +28,34 @@ const selos = [
   oferta.lojaOficial && 'Loja oficial',
   oferta.freteGratis && 'Frete grátis',
 ].filter(Boolean) as string[];
-
-const nota = [
-  'Link de afiliado',
-  oferta.conferidoEm && `preço conferido em ${diaMes(oferta.conferidoEm)}`,
-]
-  .filter(Boolean)
-  .join(' · ');
 ---
 
-<article class="oferta">
-  <div class="foto">
-    {
-      oferta.img ? (
-        <img
-          src={oferta.img}
-          alt=""
-          loading={prioridade ? 'eager' : 'lazy'}
-          fetchpriority={prioridade ? 'high' : undefined}
-          decoding="async"
-        />
-      ) : (
-        <span class="inicial" aria-hidden="true">
-          {inicial}
-        </span>
-      )
-    }
-    {oferta.desconto !== undefined && <span class="desconto numeros">−{oferta.desconto}%</span>}
-  </div>
+<!--
+  Uma oferta é uma CAIXA na prateleira, em projeção oblíqua: a frente é plana
+  (o texto nunca é distorcido por rotação 3D) e o topo e a lateral são faces
+  inclinadas por skew. É o que dá profundidade sem custar legibilidade nem JS.
+-->
+<article class="caixa" style={`--i: ${ordem}`}>
+  <div class="frente">
+    <div class="foto">
+      {
+        oferta.img ? (
+          <img
+            src={oferta.img}
+            alt=""
+            loading={prioridade ? 'eager' : 'lazy'}
+            fetchpriority={prioridade ? 'high' : undefined}
+            decoding="async"
+          />
+        ) : (
+          <span class="inicial" aria-hidden="true">
+            {inicial}
+          </span>
+        )
+      }
+      {oferta.desconto !== undefined && <span class="desconto numeros">−{oferta.desconto}%</span>}
+    </div>
 
-  <div class="info">
     <h3>{oferta.titulo}</h3>
 
     <p class="precos">
@@ -109,38 +109,80 @@ const nota = [
         </ul>
       )
     }
+
+    <!-- O botão é o único link da caixa, esticado sobre ela toda: um toque em
+         qualquer lugar leva ao anúncio, e o leitor de tela ouve um destino só. -->
+    <a class="cta" href={oferta.href} rel="sponsored nofollow noopener">
+      Pegar oferta
+      <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+        <path
+          d="M4 10h11M11 5l5 5-5 5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+      </svg>
+    </a>
+
+    {oferta.conferidoEm && <p class="nota">Conferido em {diaMes(oferta.conferidoEm)}</p>}
   </div>
-
-  <!-- O botão é o único link do card, esticado sobre ele todo: um toque em
-       qualquer lugar leva ao anúncio, e o leitor de tela ouve um destino só. -->
-  <a class="cta" href={oferta.href} rel="sponsored nofollow noopener">
-    Pegar no Mercado Livre
-    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-      <path
-        d="M4 10h11M11 5l5 5-5 5"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.8"
-        stroke-linecap="round"
-        stroke-linejoin="round"></path>
-    </svg>
-  </a>
-
-  <p class="nota">{nota}</p>
 </article>
 
 <style>
-  /* Linha compacta: miniatura, nome e preço lado a lado, botão embaixo. Pensada
-     pra caber 2 ou 3 ofertas inteiras na primeira tela do celular. */
-  .oferta {
+  .caixa {
+    /* profundidade da caixa: quanto o topo e a lateral aparecem */
+    --d: 0.625rem;
     position: relative;
-    display: grid;
-    grid-template-columns: 6.25rem 1fr;
-    gap: var(--e-3) var(--e-4);
-    padding: var(--e-4);
-    background: var(--fundo-elevado);
-    border-radius: var(--raio);
-    box-shadow: var(--sombra);
+    padding: var(--d) var(--d) 0 0;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    /* O único movimento da página: as caixas assentam na prateleira ao abrir.
+       O estado padrão (sem animação) já é totalmente visível. */
+    animation: assenta 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 80ms);
+  }
+
+  @keyframes assenta {
+    from {
+      transform: translateY(-0.75rem);
+      opacity: 0;
+    }
+  }
+
+  /* Topo da caixa, com a fita. A face é um retângulo inclinado em 45°. */
+  .caixa::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(100% - var(--d));
+    height: var(--d);
+    background:
+      linear-gradient(90deg, transparent 36%, var(--fita) 36% 64%, transparent 64%),
+      var(--caixa-topo);
+    transform-origin: bottom left;
+    transform: skewX(-45deg);
+  }
+
+  /* Lateral da caixa: a face na sombra. */
+  .caixa::after {
+    content: '';
+    position: absolute;
+    top: var(--d);
+    right: 0;
+    width: var(--d);
+    height: calc(100% - var(--d));
+    background: var(--caixa-lado);
+    transform-origin: top left;
+    transform: skewY(-45deg);
+  }
+
+  .caixa:hover {
+    transform: translateY(-3px);
+  }
+
+  .caixa:active {
+    transform: translateY(0) scale(0.99);
   }
 
   .sr {
@@ -152,25 +194,35 @@ const nota = [
     white-space: nowrap;
   }
 
-  /* Foto de anúncio tem fundo branco e o produto costuma ser escuro. Sobre o
-     card escuro ele sumiria, então a foto fica num tom claro e o branco dela se
-     funde com ele (multiply). */
+  .frente {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-1);
+    padding: 0.5rem 0.625rem 0.625rem;
+    background: var(--caixa-frente);
+  }
+
+  /* Foto de anúncio tem fundo branco e o produto costuma ser escuro. Sobre a
+     caixa escura ele sumiria, então a foto fica num tom claro e o branco dela
+     se funde com ele (multiply). */
   .foto {
     position: relative;
     display: grid;
     place-items: center;
-    align-self: start;
-    aspect-ratio: 1;
+    aspect-ratio: 4 / 3;
+    margin-bottom: var(--e-1);
     overflow: hidden;
     background: var(--foto-fundo);
-    border-radius: var(--raio-sm);
   }
 
+    /* A imagem preenche o contêiner e o object-fit cuida da proporção. Com
+     max-height: 100% a foto vazava e era cortada: porcentagem de altura não
+     resolve dentro de um contêiner dimensionado só por aspect-ratio. */
   .foto img {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
     padding: var(--e-2);
     mix-blend-mode: multiply;
@@ -196,23 +248,15 @@ const nota = [
     line-height: 1.4;
   }
 
-  .info {
-    display: flex;
-    flex-direction: column;
-    gap: var(--e-1);
-    min-width: 0;
-  }
-
-  /* Satoshi, não Clash Display: a Clash é fonte de título grande e em 16px as
+  /* Satoshi, não Clash Display: a Clash é fonte de título grande e em 15px as
      letras se fecham ("com" vira "oom"). Nome de produto precisa ler rápido. */
   h3 {
     margin: 0;
     font-family: var(--fonte-corpo);
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 0.9375rem;
     line-height: 1.25;
     color: var(--texto);
-    /* Título longo não empurra o preço pra fora da primeira tela. */
     display: -webkit-box;
     -webkit-line-clamp: 3;
     line-clamp: 3;
@@ -225,11 +269,11 @@ const nota = [
     flex-wrap: wrap;
     align-items: baseline;
     gap: 0 var(--e-2);
-    margin: 0;
+    margin: var(--e-1) 0 0;
   }
 
   .de {
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     color: var(--texto-tenue);
     text-decoration: line-through;
   }
@@ -237,26 +281,27 @@ const nota = [
   .por {
     font-family: var(--fonte-display);
     font-weight: 700;
-    font-size: 1.625rem;
+    font-size: 1.375rem;
     line-height: 1.1;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.015em;
+    word-spacing: 0.12em;
     color: var(--texto);
   }
 
   /* "no Pix": a condição do preço, colada nele e legível. */
   .condicao {
     align-self: center;
-    padding: 0.1rem 0.5rem;
+    padding: 0.05rem 0.45rem;
     border-radius: 999px;
     background: color-mix(in srgb, var(--marca) 16%, transparent);
     color: var(--marca);
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     font-weight: 700;
   }
 
   .extra {
     margin: 0;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     color: var(--texto-suave);
   }
 
@@ -264,22 +309,22 @@ const nota = [
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--e-1) var(--e-2);
+    gap: var(--e-1);
     margin: var(--e-1) 0 0;
     padding: 0;
     list-style: none;
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     color: var(--texto-suave);
   }
 
   .fatos li {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.2rem;
   }
 
   .fatos .selo {
-    padding: 0.05rem 0.5rem;
+    padding: 0.05rem 0.45rem;
     border-radius: 999px;
     background: color-mix(in srgb, var(--marca) 14%, transparent);
     color: var(--marca);
@@ -287,28 +332,30 @@ const nota = [
   }
 
   .estrela {
-    width: 0.875rem;
-    height: 0.875rem;
+    width: 0.8125rem;
+    height: 0.8125rem;
     color: var(--marca);
   }
 
   .cta {
-    grid-column: 1 / -1;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--e-2);
-    min-height: 3rem; /* alvo de toque */
-    padding: 0.7rem 1.25rem;
+    gap: var(--e-1);
+    min-height: 2.875rem; /* alvo de toque */
+    margin-top: var(--e-2);
+    padding: 0.55rem 0.5rem;
+    white-space: nowrap;
     border-radius: 999px;
     background: var(--cta);
     color: var(--cta-texto);
-    font-size: 1rem;
+    font-size: 0.9375rem;
     font-weight: 700;
     text-decoration: none;
-    transition: background-color 0.15s, transform 0.15s;
+    transition: background-color 0.15s;
   }
 
+  /* Estica o link sobre a caixa inteira (o ancestral posicionado é .caixa). */
   .cta::after {
     content: '';
     position: absolute;
@@ -319,26 +366,48 @@ const nota = [
     background: var(--cta-hover);
   }
 
-  .cta:active {
-    transform: scale(0.99);
-  }
-
   .cta svg {
-    width: 1.1em;
-    height: 1.1em;
+    flex: 0 0 auto;
+    width: 0.95em;
+    height: 0.95em;
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .cta:hover svg {
+  .caixa:hover .cta svg {
     transform: translateX(3px);
   }
 
   .nota {
-    grid-column: 1 / -1;
-    margin: calc(var(--e-1) * -1) 0 0;
+    margin: 0;
     text-align: center;
     font-size: 0.6875rem;
     line-height: 1.4;
     color: var(--texto-tenue);
+  }
+
+  /* Celular estreito (320px): a caixa fica com ~110px de frente. Menos recheio
+     e sem a seta, pra o texto do botão caber. */
+  @media (max-width: 22.5rem) {
+    .caixa {
+      --d: 0.5rem;
+    }
+    .frente {
+      padding: 0.5rem;
+    }
+    .por {
+      font-size: 1.25rem;
+    }
+    .cta svg {
+      display: none;
+    }
+    /* Sem espaço: o botão de compra vale mais que as linhas secundárias. */
+    .extra,
+    .fatos {
+      display: none;
+    }
+    h3 {
+      -webkit-line-clamp: 4;
+      line-clamp: 4;
+    }
   }
 </style>
