@@ -10,46 +10,53 @@ const ofertas = listarOfertas();
 
 <Base
   titulo="Achados & Ofertas — eu garimpo, você economiza"
-  descricao="Todas as ofertas que o Patto garimpou no Mercado Livre, num lugar só. Link direto, mesmo preço do anúncio."
+  descricao="Ofertas do Mercado Livre garimpadas pelo Patto, com o link direto de cada uma. Mesmo preço do anúncio."
 >
   <div class="coluna">
-    <header class="abertura">
+    <!-- Cabeçalho de uma linha só. A versão anterior gastava a primeira tela
+         inteira com avatar, título e frase, e o produto ficava abaixo da dobra. -->
+    <header class="topo">
       <div class="avatar">
         <img
           src="/marca/patto.webp"
           alt="Patto, o pato de terno do Achados & Ofertas"
-          width="104"
-          height="104"
-          fetchpriority="high"
+          width="56"
+          height="56"
         />
       </div>
+      <div class="topo-texto">
+        <p class="marca">{SITE.nome}</p>
+        <h1>Eu garimpo. Você economiza.</h1>
+      </div>
+    </header>
 
-      <p class="marca">{SITE.nome}</p>
+    <p class="aviso">Links de afiliado do Mercado Livre. Mesmo preço do anúncio.</p>
 
-      <h1>Eu garimpo.<br />Você economiza.</h1>
-      <p class="sub">Todas as ofertas que garimpei no Mercado Livre, num lugar só.</p>
+    {
+      ofertas.length > 0 ? (
+        <section class="feed" aria-label="Ofertas">
+          {ofertas.map((oferta, i) => (
+            <Oferta oferta={oferta} prioridade={i === 0} />
+          ))}
+        </section>
+      ) : (
+        <p class="vazio">As primeiras ofertas estão chegando.</p>
+      )
+    }
+  </div>
 
-      <a class="cta" href="/go/todas" rel="sponsored nofollow noopener">
+  <!-- Barra do "ver tudo": colada no fim da tela enquanto a lista rola, e logo
+       abaixo da última oferta quando a lista é curta. Laranja de propósito: o
+       vermelho é só de "comprar este item". -->
+  <div class="barra">
+    <div class="coluna">
+      <a class="ver-todas" href="/go/todas" rel="sponsored nofollow noopener">
         Ver todas as ofertas
         <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"
           ><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg
         >
       </a>
-      <p class="micro">Abre no Mercado Livre. Link de afiliado, mesmo preço do anúncio.</p>
-    </header>
-
-    {
-      ofertas.length > 0 && (
-        <section class="feed" aria-labelledby="t-feed">
-          <h2 id="t-feed">Últimas ofertas</h2>
-          <div class="lista">
-            {ofertas.map((oferta) => (
-              <Oferta oferta={oferta} />
-            ))}
-          </div>
-        </section>
-      )
-    }
+    </div>
   </div>
 </Base>
 
@@ -59,134 +66,117 @@ const ofertas = listarOfertas();
     margin-inline: auto;
   }
 
-  /* A primeira tela é a página inteira enquanto não há ofertas: identidade,
-     uma frase, um botão. Centralizada na vertical pra o botão cair onde o
-     polegar está. */
-  .abertura {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: min(82svh, 44rem);
-    padding: var(--e-12) 0;
-    text-align: center;
-    /* O único movimento da página: a abertura assenta uma vez. O estado padrão
-       (sem animação) já é totalmente visível. */
-    animation: assenta 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
+  /* ---------- topo ---------- */
 
-  @keyframes assenta {
-    from {
-      transform: translateY(0.75rem);
-      opacity: 0;
-    }
+  .topo {
+    display: flex;
+    align-items: center;
+    gap: var(--e-3);
+    padding: var(--e-6) 0 var(--e-3);
   }
 
   /* Anel como o do perfil do Instagram: uma cor só, com folga. */
   .avatar {
-    padding: 4px;
-    margin-bottom: var(--e-4);
+    flex: 0 0 auto;
+    padding: 2px;
     border-radius: 50%;
     background: var(--fundo);
-    box-shadow: 0 0 0 3px var(--marca);
+    box-shadow: 0 0 0 2px var(--marca);
   }
 
   .avatar img {
     display: block;
-    width: 6.5rem;
-    height: 6.5rem;
+    width: 3.5rem;
+    height: 3.5rem;
     border-radius: 50%;
     object-fit: cover;
   }
 
+  .topo-texto {
+    min-width: 0;
+  }
+
   .marca {
-    margin: 0 0 var(--e-8);
-    font-size: 0.9375rem;
+    margin: 0;
+    font-size: 0.8125rem;
     font-weight: 500;
     color: var(--texto-tenue);
   }
 
   h1 {
-    margin: 0 0 var(--e-4);
+    margin: 0;
     font-family: var(--fonte-display);
     font-weight: 700;
-    font-size: clamp(2.125rem, 10.6vw, 3.75rem);
-    line-height: 1;
-    letter-spacing: -0.035em;
+    font-size: clamp(1.25rem, 5.6vw, 1.625rem);
+    line-height: 1.1;
+    letter-spacing: -0.025em;
     color: var(--texto);
-  }
-
-  .sub {
-    margin: 0 0 var(--e-8);
-    max-width: 28ch;
-    font-size: 1.125rem;
-    line-height: 1.5;
-    color: var(--texto-suave);
     text-wrap: balance;
   }
 
-  .cta {
+  .aviso {
+    margin: 0 0 var(--e-4);
+    font-size: 0.75rem;
+    color: var(--texto-tenue);
+  }
+
+  /* ---------- feed ---------- */
+
+  .feed {
+    display: grid;
+    gap: var(--e-4);
+  }
+
+  .vazio {
+    padding: var(--e-8) 0;
+    text-align: center;
+    color: var(--texto-suave);
+  }
+
+  /* ---------- barra "ver todas" ---------- */
+
+  .barra {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    margin-top: var(--e-4);
+    padding: var(--e-3) 0 max(var(--e-3), env(safe-area-inset-bottom));
+    background: var(--fundo);
+    /* Sombra com deslocamento: só é visível quando a lista rola por baixo. */
+    box-shadow: 0 -14px 20px -14px rgb(0 0 0 / 0.85);
+  }
+
+  .ver-todas {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: var(--e-2);
-    width: min(100%, 22rem);
-    min-height: 3.5rem;
-    padding: 0.9rem 1.5rem;
+    min-height: 3.25rem;
+    padding: 0.8rem 1.5rem;
     border-radius: 999px;
-    background: var(--cta);
-    color: var(--cta-texto);
+    background: var(--marca);
+    color: var(--marca-texto);
     font-size: 1.0625rem;
     font-weight: 700;
     text-decoration: none;
     transition: background-color 0.15s, transform 0.15s;
   }
 
-  .cta:hover {
-    background: var(--cta-hover);
+  .ver-todas:hover {
+    background: var(--marca-clara);
   }
 
-  .cta:active {
+  .ver-todas:active {
     transform: scale(0.99);
   }
 
-  .cta svg {
+  .ver-todas svg {
     width: 1.15em;
     height: 1.15em;
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .cta:hover svg {
+  .ver-todas:hover svg {
     transform: translateX(3px);
-  }
-
-  .micro {
-    margin: var(--e-3) 0 0;
-    max-width: 30ch;
-    font-size: 0.8125rem;
-    line-height: 1.5;
-    color: var(--texto-tenue);
-    text-wrap: balance;
-  }
-
-  /* ---------- feed (só existe quando há ofertas) ---------- */
-
-  .feed {
-    padding: var(--e-8) 0 0;
-  }
-
-  .feed h2 {
-    margin: 0 0 var(--e-6);
-    text-align: center;
-    font-family: var(--fonte-display);
-    font-weight: 600;
-    font-size: 1.5rem;
-    letter-spacing: -0.02em;
-    color: var(--texto);
-  }
-
-  .lista {
-    display: grid;
-    gap: var(--e-6);
   }
 </style>

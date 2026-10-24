@@ -4,11 +4,13 @@ import { formatarPreco } from '../lib/ofertas';
 
 interface Props {
   oferta: Oferta;
+  /** A primeira oferta está na primeira tela: carrega já, sem lazy. */
+  prioridade?: boolean;
 }
 
-const { oferta } = Astro.props;
+const { oferta, prioridade = false } = Astro.props;
 
-// "2026-10-23" -> "23/10". Quebra a string em vez de usar Date: new Date() de
+// "2026-10-24" -> "24/10". Quebra a string em vez de usar Date: new Date() de
 // uma data sem horário vira meia-noite UTC e, no fuso do Brasil, cai no dia
 // anterior.
 const diaMes = (iso: string) => {
@@ -19,27 +21,31 @@ const diaMes = (iso: string) => {
 const inicial = oferta.titulo.trim().charAt(0).toUpperCase();
 
 const selos = [
-  oferta.freteGratis && 'Frete grátis',
-  oferta.lojaOficial && 'Loja oficial',
+  oferta.ranking,
   oferta.full && 'Full',
+  oferta.lojaOficial && 'Loja oficial',
+  oferta.freteGratis && 'Frete grátis',
 ].filter(Boolean) as string[];
 
-// Uma string só: as frases em linhas separadas do template perdiam o espaço
-// entre elas ("07/10.Confira").
 const nota = [
-  'Link de afiliado.',
-  oferta.conferidoEm && `Preço conferido em ${diaMes(oferta.conferidoEm)}.`,
-  'Confira no anúncio antes de comprar.',
+  'Link de afiliado',
+  oferta.conferidoEm && `preço conferido em ${diaMes(oferta.conferidoEm)}`,
 ]
   .filter(Boolean)
-  .join(' ');
+  .join(' · ');
 ---
 
 <article class="oferta">
   <div class="foto">
     {
       oferta.img ? (
-        <img src={oferta.img} alt="" loading="lazy" decoding="async" />
+        <img
+          src={oferta.img}
+          alt=""
+          loading={prioridade ? 'eager' : 'lazy'}
+          fetchpriority={prioridade ? 'high' : undefined}
+          decoding="async"
+        />
       ) : (
         <span class="inicial" aria-hidden="true">
           {inicial}
@@ -49,7 +55,7 @@ const nota = [
     {oferta.desconto !== undefined && <span class="desconto numeros">−{oferta.desconto}%</span>}
   </div>
 
-  <div class="corpo">
+  <div class="info">
     <h3>{oferta.titulo}</h3>
 
     <p class="precos">
@@ -67,7 +73,7 @@ const nota = [
 
     {
       oferta.precoAlternativo && (
-        <p class="parcelas numeros">
+        <p class="extra numeros">
           ou {formatarPreco(oferta.precoAlternativo.valor)} {oferta.precoAlternativo.rotulo}
         </p>
       )
@@ -75,7 +81,7 @@ const nota = [
 
     {
       oferta.parcelas && (
-        <p class="parcelas numeros">
+        <p class="extra numeros">
           ou {oferta.parcelas.vezes}× de {formatarPreco(oferta.parcelas.valor)}
           {oferta.parcelas.semJuros ? ' sem juros' : ''}
         </p>
@@ -83,7 +89,7 @@ const nota = [
     }
 
     {
-      (selos.length > 0 || oferta.avaliacao !== undefined || oferta.loja) && (
+      (selos.length > 0 || oferta.avaliacao !== undefined) && (
         <ul class="fatos">
           {oferta.avaliacao !== undefined && (
             <li>
@@ -99,36 +105,39 @@ const nota = [
               </span>
             </li>
           )}
-          {oferta.ranking && <li>{oferta.ranking}</li>}
           {selos.map((s) => <li class="selo">{s}</li>)}
-          {oferta.loja && <li>Vendido por {oferta.loja}</li>}
         </ul>
       )
     }
-
-    <a class="cta" href={oferta.href} rel="sponsored nofollow noopener">
-      Pegar no Mercado Livre
-      <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-        <path
-          d="M4 10h11M11 5l5 5-5 5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"></path>
-      </svg>
-    </a>
-
-    <p class="nota">{nota}</p>
   </div>
+
+  <!-- O botão é o único link do card, esticado sobre ele todo: um toque em
+       qualquer lugar leva ao anúncio, e o leitor de tela ouve um destino só. -->
+  <a class="cta" href={oferta.href} rel="sponsored nofollow noopener">
+    Pegar no Mercado Livre
+    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <path
+        d="M4 10h11M11 5l5 5-5 5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"></path>
+    </svg>
+  </a>
+
+  <p class="nota">{nota}</p>
 </article>
 
 <style>
+  /* Linha compacta: miniatura, nome e preço lado a lado, botão embaixo. Pensada
+     pra caber 2 ou 3 ofertas inteiras na primeira tela do celular. */
   .oferta {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    display: grid;
+    grid-template-columns: 6.25rem 1fr;
+    gap: var(--e-3) var(--e-4);
+    padding: var(--e-4);
     background: var(--fundo-elevado);
     border-radius: var(--raio);
     box-shadow: var(--sombra);
@@ -150,8 +159,11 @@ const nota = [
     position: relative;
     display: grid;
     place-items: center;
+    align-self: start;
     aspect-ratio: 1;
+    overflow: hidden;
     background: var(--foto-fundo);
+    border-radius: var(--raio-sm);
   }
 
   .foto img {
@@ -160,68 +172,64 @@ const nota = [
     width: auto;
     height: auto;
     object-fit: contain;
-    padding: var(--e-6);
+    padding: var(--e-2);
     mix-blend-mode: multiply;
   }
 
   .inicial {
     font-family: var(--fonte-display);
     font-weight: 700;
-    font-size: 4rem;
+    font-size: 2.25rem;
     color: var(--foto-tinta);
-  }
-
-  /* "no Pix": a condição do preço, colada nele e legível. */
-  .condicao {
-    align-self: center;
-    padding: 0.15rem 0.55rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--marca) 16%, transparent);
-    color: var(--marca);
-    font-size: 0.8125rem;
-    font-weight: 700;
   }
 
   .desconto {
     position: absolute;
-    top: var(--e-3);
-    left: var(--e-3);
-    padding: 0.2rem 0.6rem;
+    top: var(--e-1);
+    left: var(--e-1);
+    padding: 0.1rem 0.4rem;
     border-radius: 999px;
     background: var(--cta);
     color: var(--cta-texto);
-    font-size: 0.8125rem;
+    font-size: 0.6875rem;
     font-weight: 700;
+    line-height: 1.4;
   }
 
-  .corpo {
+  .info {
     display: flex;
     flex-direction: column;
-    gap: var(--e-2);
-    padding: var(--e-4) var(--e-4) var(--e-6);
+    gap: var(--e-1);
+    min-width: 0;
   }
 
+  /* Satoshi, não Clash Display: a Clash é fonte de título grande e em 16px as
+     letras se fecham ("com" vira "oom"). Nome de produto precisa ler rápido. */
   h3 {
     margin: 0;
-    font-family: var(--fonte-display);
-    font-weight: 600;
-    font-size: 1.25rem;
-    line-height: 1.2;
-    letter-spacing: -0.015em;
+    font-family: var(--fonte-corpo);
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.25;
     color: var(--texto);
-    text-wrap: balance;
+    /* Título longo não empurra o preço pra fora da primeira tela. */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .precos {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
-    gap: var(--e-1) var(--e-3);
-    margin: var(--e-1) 0 0;
+    gap: 0 var(--e-2);
+    margin: 0;
   }
 
   .de {
-    font-size: 0.9375rem;
+    font-size: 0.8125rem;
     color: var(--texto-tenue);
     text-decoration: line-through;
   }
@@ -229,59 +237,69 @@ const nota = [
   .por {
     font-family: var(--fonte-display);
     font-weight: 700;
-    font-size: 2rem;
-    line-height: 1.05;
+    font-size: 1.625rem;
+    line-height: 1.1;
     letter-spacing: -0.03em;
     color: var(--texto);
   }
 
-  .parcelas {
+  /* "no Pix": a condição do preço, colada nele e legível. */
+  .condicao {
+    align-self: center;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--marca) 16%, transparent);
+    color: var(--marca);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .extra {
     margin: 0;
-    font-size: 0.9375rem;
+    font-size: 0.8125rem;
     color: var(--texto-suave);
   }
 
   .fatos {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--e-1) var(--e-3);
+    align-items: center;
+    gap: var(--e-1) var(--e-2);
     margin: var(--e-1) 0 0;
     padding: 0;
     list-style: none;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     color: var(--texto-suave);
   }
 
   .fatos li {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.25rem;
   }
 
   .fatos .selo {
-    padding: 0.1rem 0.55rem;
+    padding: 0.05rem 0.5rem;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--marca) 16%, transparent);
+    background: color-mix(in srgb, var(--marca) 14%, transparent);
     color: var(--marca);
     font-weight: 600;
   }
 
   .estrela {
-    width: 1rem;
-    height: 1rem;
+    width: 0.875rem;
+    height: 0.875rem;
     color: var(--marca);
   }
 
-  /* O botão é o único link do card, esticado sobre ele todo: um toque em
-     qualquer lugar leva ao anúncio, e leitor de tela ouve um destino só. */
   .cta {
+    grid-column: 1 / -1;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: var(--e-2);
-    margin-top: var(--e-3);
-    min-height: 3rem; /* alvo de toque de 48px */
-    padding: 0.8rem 1.25rem;
+    min-height: 3rem; /* alvo de toque */
+    padding: 0.7rem 1.25rem;
     border-radius: 999px;
     background: var(--cta);
     color: var(--cta-texto);
@@ -316,9 +334,11 @@ const nota = [
   }
 
   .nota {
-    margin: var(--e-1) 0 0;
-    font-size: 0.75rem;
-    line-height: 1.5;
+    grid-column: 1 / -1;
+    margin: calc(var(--e-1) * -1) 0 0;
+    text-align: center;
+    font-size: 0.6875rem;
+    line-height: 1.4;
     color: var(--texto-tenue);
   }
 </style>

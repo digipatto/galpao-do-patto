@@ -5,14 +5,12 @@
 ## O que é
 
 A página do perfil **@achadoseofertas.patto** (Instagram, "Patto | Achados &
-Ofertas"). Uma página só, minimalista, numa coluna de largura de celular:
-avatar, tagline, **um botão** ("Ver todas as ofertas") que leva à vitrine geral
-de afiliado no Mercado Livre. Conforme ofertas entram em `src/data/ofertas.json`,
-um feed de cards aparece embaixo do botão, cada card com o seu próprio botão
-pro anúncio.
-
-Sem ofertas, a página é só a primeira tela: identidade, uma frase, um botão.
-Não existe "estado vazio" separado, porque o botão já tem pra onde levar.
+Ofertas"). Uma página só, numa coluna de largura de celular, **tudo na primeira
+tela**: cabeçalho de uma linha (avatar + nome + tagline), as ofertas logo abaixo
+e, colado no fim da tela, o botão "Ver todas as ofertas" (a vitrine geral de
+afiliado). Cada oferta é uma linha compacta (miniatura, nome, preço) com o seu
+botão vermelho "Pegar no Mercado Livre". Conforme ofertas entram em
+`src/data/ofertas.json`, a lista cresce sozinha.
 
 - URL: https://achadoseofertaspatto.netlify.app (está na bio do Instagram)
 - Tagline (da bio): **"Eu garimpo. Você economiza."**
@@ -41,13 +39,19 @@ Não existe "estado vazio" separado, porque o botão já tem pra onde levar.
 8. **O site é escuro, sempre.** Não seguir `prefers-color-scheme`.
 9. **Não usar a foto de perfil atual do Instagram no site**: ela tem a logo e o
    crachá "Mercado Livre Afiliados", que sugeririam vínculo oficial.
-10. **Menos é mais: um objetivo, um botão principal, todos pro Mercado Livre.**
-    O único caminho de volta pro Instagram é um link de texto no rodapé, nunca
-    um botão. (A versão anterior tinha "Seguir no Instagram" como botão
-    principal: mandava o visitante de volta pra onde ele veio.) Antes de
-    acrescentar um bloco, perguntar o que ele diz que a página já não disse.
-    Cortado de propósito: lista de garantias, FAQ, card de estado vazio.
-11. **Design passa pelo Impeccable.** Antes de editar UI, ler
+10. **Menos é mais, e tudo pro Mercado Livre.** Vermelho = "comprar ESTE item"
+    (botão do card); laranja = "ver todas" (barra fixa). Os dois levam ao ML. O
+    único caminho de volta pro Instagram é um link de texto no rodapé, nunca um
+    botão (a versão anterior tinha "Seguir no Instagram" como botão principal:
+    mandava o visitante de volta pra onde ele veio). Antes de acrescentar um
+    bloco, perguntar o que ele diz que a página já não disse. Cortado de
+    propósito: lista de garantias, FAQ, hero grande, card de estado vazio.
+11. **A primeira tela mostra as ofertas e os botões, sem rolar.** Pedido
+    explícito do dono: a versão com hero grande escondia o produto abaixo da
+    dobra e ele precisava rolar pra achar o primeiro link. Vale de 320×568 a
+    390×844. Nunca gastar a primeira tela com identidade; ela cabe em uma linha.
+    Título de card em Satoshi (a Clash Display fecha as letras em 16px).
+12. **Design passa pelo Impeccable.** Antes de editar UI, ler
     `.claude/skills/impeccable/reference/craft-floor.md`; depois, rodar
     `.claude/skills/impeccable/scripts/impeccable detect --json <arquivos>`.
     Proibido: kicker acima de heading, grade de cards iguais como estrutura de
@@ -63,7 +67,7 @@ src/
   lib/site.ts              nome, Instagram e a vitrine geral de afiliado
   components/Oferta.astro  um card do feed
   layouts/Base.astro       <head>, OG, rodapé com aviso de afiliado
-  pages/index.astro        primeira tela (avatar, tagline, botão) + feed
+  pages/index.astro        cabeçalho compacto + lista de ofertas + barra "ver todas"
   pages/go/[id].ts         302 pra vitrine (/go/todas) ou oferta (roda no servidor)
   pages/og.astro           gerador da imagem de compartilhamento (noindex)
   styles/tokens.css        cores, tipografia, espaçamento
@@ -128,6 +132,11 @@ de 500px: abaixo disso o print sai recortado e mente.
 
 ## Ambiente
 
+- **Testar em celular de verdade:** o Chrome headless não renderiza abaixo de
+  500px, então um print "de 390px" é só um recorte de 500px e mente. Montar um
+  HTML com `<iframe style="width:390px;height:844px">` apontando pro servidor
+  local (e outros dois em 360×740 e 320×568) e tirar print da janela de 1180px.
+  Dentro do iframe a página enxerga a largura real.
 - `npm run dev` **não funciona**: o adapter do Netlify tenta subir um runtime
   Deno local e quebra. Usar `npm run build` e servir `dist/`.
 - `/go/[id]` roda no servidor, então não existe ao servir `dist/` à mão. Testar
