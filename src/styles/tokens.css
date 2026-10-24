@@ -50,6 +50,12 @@
   --cta-hover: var(--p-gravata-claro);
   --cta-texto: #ffffff;
 
+  /* Fundo da foto de produto. Foto de anúncio tem fundo branco e o produto
+     costuma ser escuro: num card escuro ele sumiria. O branco da foto se funde
+     com este tom (mix-blend-mode: multiply). */
+  --foto-fundo: var(--p-camisa);
+  --foto-tinta: var(--p-tinta-500);
+
   --fonte-display: "Clash Display", "Satoshi", ui-sans-serif, system-ui, sans-serif;
   --fonte-corpo: "Satoshi", ui-sans-serif, system-ui, -apple-system, sans-serif;
 

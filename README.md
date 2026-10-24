@@ -40,6 +40,8 @@ O Netlify publica sozinho.
 | `titulo` | sim | 3 a 120 caracteres. |
 | `preco` | sim | Número com ponto decimal, sem `R$`: `149.9`. |
 | `precoDe` | não | Preço cheio. Tem que ser **maior** que `preco`. Gera o `−40%`. |
+| `condicaoPreco` | não | Condição do `preco`, quando não vale pra qualquer pagamento: `"no Pix"`. |
+| `precoAlternativo` | não | O outro preço do anúncio: `{ "valor": 99.9, "rotulo": "em outros meios" }`. |
 | `loja`, `lojaOficial`, `freteGratis`, `full` | não | Selos do card. |
 | `parcelas` | não | `{ "vezes": 10, "valor": 14.99, "semJuros": true }`. |
 | `avaliacao`, `avaliacoes`, `ranking` | não | **Copie do anúncio**, nunca estime. |

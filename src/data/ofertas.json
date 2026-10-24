@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "id": "redmi-buds-6-play",
+    "titulo": "Fone Bluetooth Xiaomi Redmi Buds 6 Play — Preto",
+    "preco": 91.91,
+    "precoDe": 119.9,
+    "condicaoPreco": "no Pix",
+    "precoAlternativo": { "valor": 99.9, "rotulo": "em outros meios" },
+    "full": true,
+    "ranking": "Mais vendido",
+    "img": "/produtos/redmi-buds-6-play-preto.webp",
+    "linkAfiliado": "https://meli.la/1Zv52NC",
+    "criadoEm": "2026-10-24",
+    "conferidoEm": "2026-10-24"
+  }
+]

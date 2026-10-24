@@ -80,14 +80,32 @@ public/
 3. `npm run build` — se o JSON estiver errado, o erro aponta o campo.
 4. Commit e push; o Netlify publica sozinho.
 
-Campos: `id` (slug único), `titulo`, `preco`, `precoDe?`, `loja?`,
-`lojaOficial?`, `freteGratis?`, `full?`, `parcelas? {vezes, valor, semJuros}`,
-`avaliacao?`, `avaliacoes?`, `ranking?`, `img?`, `linkAfiliado`, `criadoEm`
-(AAAA-MM-DD, define a ordem: mais nova no topo), `conferidoEm?`.
+Campos: `id` (slug único), `titulo`, `preco`, `precoDe?`, `condicaoPreco?`
+(ex.: "no Pix"), `precoAlternativo? {valor, rotulo}`, `loja?`, `lojaOficial?`,
+`freteGratis?`, `full?`, `parcelas? {vezes, valor, semJuros}`, `avaliacao?`,
+`avaliacoes?`, `ranking?`, `img?`, `linkAfiliado`, `criadoEm` (AAAA-MM-DD,
+define a ordem: mais nova no topo), `conferidoEm?`.
 
-**O ML bloqueia leitura automatizada** (403 no fetch, "não encontrado" até no
-Chrome headless, API exige token). Preço, título e foto vêm do usuário (print
-ou texto), nunca de scraping.
+**Preço com condição vai com a condição.** Se o preço de destaque do anúncio é
+o do Pix, usar `condicaoPreco: "no Pix"` e o outro em `precoAlternativo`.
+**Frete grátis condicional** ("por ser sua primeira compra") NÃO é `freteGratis`.
+
+**Foto de produto fica sobre fundo claro** (`--foto-fundo`, com `multiply`):
+foto de anúncio tem fundo branco e o produto costuma ser escuro. Conferir que a
+foto bate com o modelo do anúncio: o dono mandou 4 fotos do Redmi e só 2 eram
+do Buds 6 Play.
+
+### Como ler os dados de um produto
+
+- Página de produto e API do ML: **bloqueadas** (403 / exige token).
+- Mas o link `meli.la/...` do dono redireciona pra `/social/<perfil>`, uma
+  página **renderizada no servidor** que abre com `curl` comum: o `og:title` é o
+  produto e o primeiro card traz preço, desconto, selos e Full. Dá pra ler título,
+  preço e selos dali, e conferir a foto contra o `og:image`.
+- **Esse link leva à página de perfil do ML, não ao produto.** O visitante cai na
+  vitrine com o produto no topo e precisa tocar em "Ir para produto". Se o dono
+  tiver o link direto do produto (opção de link do produto no painel de afiliados),
+  provavelmente converte mais: um toque a menos.
 
 ## Skills de agente (locais, fora do git; reinstalar com `npx skills add`)
 

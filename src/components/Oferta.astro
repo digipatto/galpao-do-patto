@@ -62,7 +62,16 @@ const nota = [
         )
       }
       <strong class="por numeros">{formatarPreco(oferta.preco)}</strong>
+      {oferta.condicaoPreco && <span class="condicao">{oferta.condicaoPreco}</span>}
     </p>
+
+    {
+      oferta.precoAlternativo && (
+        <p class="parcelas numeros">
+          ou {formatarPreco(oferta.precoAlternativo.valor)} {oferta.precoAlternativo.rotulo}
+        </p>
+      )
+    }
 
     {
       oferta.parcelas && (
@@ -134,16 +143,15 @@ const nota = [
     white-space: nowrap;
   }
 
+  /* Foto de anúncio tem fundo branco e o produto costuma ser escuro. Sobre o
+     card escuro ele sumiria, então a foto fica num tom claro e o branco dela se
+     funde com ele (multiply). */
   .foto {
     position: relative;
     display: grid;
     place-items: center;
     aspect-ratio: 1;
-    background: radial-gradient(
-      ellipse at 50% 40%,
-      var(--superficie-alta),
-      var(--superficie) 75%
-    );
+    background: var(--foto-fundo);
   }
 
   .foto img {
@@ -152,14 +160,26 @@ const nota = [
     width: auto;
     height: auto;
     object-fit: contain;
-    padding: var(--e-4);
+    padding: var(--e-6);
+    mix-blend-mode: multiply;
   }
 
   .inicial {
     font-family: var(--fonte-display);
     font-weight: 700;
     font-size: 4rem;
-    color: var(--texto-tenue);
+    color: var(--foto-tinta);
+  }
+
+  /* "no Pix": a condição do preço, colada nele e legível. */
+  .condicao {
+    align-self: center;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--marca) 16%, transparent);
+    color: var(--marca);
+    font-size: 0.8125rem;
+    font-weight: 700;
   }
 
   .desconto {

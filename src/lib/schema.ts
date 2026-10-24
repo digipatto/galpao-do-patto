@@ -25,6 +25,16 @@ export const esquemaOferta = z
     preco: z.number().positive(),
     /** Preço cheio. Gera o desconto e a economia. */
     precoDe: z.number().positive().optional(),
+    /**
+     * Condição do `preco`, quando ele não vale pra qualquer pagamento
+     * (ex.: "no Pix"). Aparece colado no preço: preço com condição escondida
+     * é preço enganoso.
+     */
+    condicaoPreco: z.string().min(1).optional(),
+    /** O outro preço do anúncio (ex.: o do cartão, quando o principal é o Pix). */
+    precoAlternativo: z
+      .object({ valor: z.number().positive(), rotulo: z.string().min(1) })
+      .optional(),
 
     loja: z.string().min(1).optional(),
     lojaOficial: z.boolean().optional(),
