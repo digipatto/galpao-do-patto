@@ -1,189 +1,168 @@
 ---
 import Base from '../layouts/Base.astro';
 import Oferta from '../components/Oferta.astro';
-import HeroGalpao from '../components/hero/HeroGalpao';
-import type { Oferta as TipoOferta } from '../lib/ofertas';
 import { listarOfertas } from '../lib/ofertas';
 
 // Dado inválido estoura aqui e o build para, de propósito.
 const ofertas = listarOfertas();
 
-// Duas caixas por prateleira. Cada prateleira ganha a própria travessa, então a
-// estante cresce uma prateleira por vez conforme o dono posta.
-const POR_PRATELEIRA = 2;
-const prateleiras: TipoOferta[][] = [];
-for (let i = 0; i < ofertas.length; i += POR_PRATELEIRA) {
-  prateleiras.push(ofertas.slice(i, i + POR_PRATELEIRA));
-}
-if (prateleiras.length === 0) prateleiras.push([]);
+// A placa (h1 + subtítulo) é a bio do Instagram, palavra por palavra: quem clica
+// na bio tem que reconhecer a promessa ao chegar.
 ---
 
 <Base
   titulo="Achados & Ofertas — o galpão de ofertas do Patto"
   descricao="Sou o Patto, seu garimpeiro oficial. Achados reais do Mercado Livre, com o link direto de cada um, no meu galpão de ofertas."
 >
-  <div class="coluna">
-    <!-- Hero compacto: a entrada do galpão. O poster (HTML puro) já está aqui na
-         primeira pintura; no desktop a cena 3D entra por cima dele. No celular o
-         poster fica e nenhum JS é baixado. Altura baixa de propósito: a oferta e
-         os botões continuam na primeira tela. -->
-    <div class="hero" aria-hidden="true">
-      <img
-        class="hero-poster"
-        src="/hero/poster.webp"
-        width="1088"
-        height="288"
-        alt=""
-        fetchpriority="high"
-        decoding="async"
-      />
-      <HeroGalpao client:media="(min-width: 48rem)" />
-    </div>
-
-    <!-- A copy é a bio do Instagram, palavra por palavra: quem clica na bio tem
-         que reconhecer a promessa ao chegar. -->
-    <header class="placa">
-      <div class="avatar">
-        <img
-          src="/marca/patto.webp"
-          alt="Patto, o pato de terno"
-          width="56"
-          height="56"
-        />
-      </div>
-      <div class="placa-texto">
-        <h1>Sou o Patto, seu garimpeiro oficial</h1>
-        <p class="sub">Achados reais do Mercado Livre</p>
-      </div>
-    </header>
-
-    <p class="aviso">Links de afiliado. Mesmo preço do anúncio.</p>
-
-    <!-- O galpão: montantes azuis, travessas laranja, uma caixa por oferta. -->
-    <section class="estante" aria-label="Ofertas">
-      {
-        prateleiras.map((par, p) => (
-          <div class="prateleira">
-            {par.map((oferta, j) => (
-              <Oferta oferta={oferta} prioridade={p === 0 && j === 0} ordem={p * POR_PRATELEIRA + j} />
-            ))}
-            {Array.from({ length: POR_PRATELEIRA - par.length }).map(() => (
-              <div class="vaga" aria-hidden="true">
-                <svg viewBox="0 0 20 20" focusable="false"
-                  ><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg
-                >
-                <span>Vaga livre</span>
-              </div>
-            ))}
-          </div>
-        ))
-      }
-    </section>
-
-    <!-- Faixas de corredor no piso, convergindo pro fundo do galpão. -->
-    <svg class="piso" viewBox="0 0 400 72" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-      <polygon points="170,0 181,0 92,72 52,72" fill="currentColor"></polygon>
-      <polygon points="219,0 230,0 348,72 308,72" fill="currentColor"></polygon>
-    </svg>
+  <!-- O palco: o poster (imagem) aparece já na primeira pintura; a cena 3D entra
+       por cima quando carrega. Sem WebGL, com movimento reduzido ou em aparelho
+       fraco, o poster fica e a página funciona igual. -->
+  <div class="palco" aria-hidden="true">
+    <canvas id="cena"></canvas>
   </div>
 
-  <!-- Barra do "ver tudo": colada no fim da tela enquanto a estante rola, e logo
-       abaixo do piso quando a estante é curta. Laranja de propósito: o vermelho
-       é só de "comprar este item". -->
-  <div class="barra">
+  <div class="conteudo">
     <div class="coluna">
-      <a class="ver-todas" href="/go/todas" rel="sponsored nofollow noopener">
-        Ver todas as ofertas
-        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"
-          ><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg
-        >
-      </a>
+      {
+        ofertas.length === 0 ? (
+          <section class="estacao" data-estacao>
+            <header class="placa">
+              <div class="avatar">
+                <img src="/marca/patto.webp" alt="Patto, o pato de terno" width="56" height="56" />
+              </div>
+              <div class="placa-texto">
+                <h1>Sou o Patto, seu garimpeiro oficial</h1>
+                <p class="sub">Achados reais do Mercado Livre</p>
+              </div>
+            </header>
+          </section>
+        ) : (
+          ofertas.map((oferta, i) => (
+            <section class="estacao" data-estacao data-img={oferta.img} data-letra={oferta.titulo.trim().charAt(0).toUpperCase()}>
+              {i === 0 && (
+                <header class="placa">
+                  <div class="avatar">
+                    <img src="/marca/patto.webp" alt="Patto, o pato de terno" width="56" height="56" />
+                  </div>
+                  <div class="placa-texto">
+                    <h1>Sou o Patto, seu garimpeiro oficial</h1>
+                    <p class="sub">Achados reais do Mercado Livre</p>
+                    <p class="aviso">Links de afiliado. Mesmo preço do anúncio.</p>
+                  </div>
+                </header>
+              )}
+              <Oferta oferta={oferta} prioridade={i === 0} />
+              {i < ofertas.length - 1 && (
+                <span class="desce" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" focusable="false">
+                    <path d="M5 8l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </span>
+              )}
+            </section>
+          ))
+        )
+      }
+    </div>
+
+    <!-- Barra do "ver tudo": colada no fim da tela enquanto a página rola, e logo
+         abaixo da última oferta quando a lista termina. Laranja de propósito: o
+         vermelho é só de "comprar este item". -->
+    <div class="barra">
+      <div class="coluna">
+        <a class="ver-todas" href="/go/todas" rel="sponsored nofollow noopener">
+          Ver todas as ofertas
+          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"
+            ><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg
+          >
+        </a>
+      </div>
     </div>
   </div>
 </Base>
 
 <style>
+  :global(:root) {
+    --barra: 5rem;
+  }
+
   .coluna {
     width: min(100% - calc(var(--gutter) * 2), 34rem);
     margin-inline: auto;
   }
 
-  /* ---------- hero (entrada do galpão) ---------- */
+  /* ---------- palco (poster + cena 3D) ---------- */
 
-  .hero {
-    position: relative;
-    overflow: hidden;
-    margin-top: 0.75rem;
-    height: clamp(3.5rem, 9svh, 9rem);
-    border-radius: var(--raio-sm);
-    background: var(--fundo-elevado);
-  }
-
-  /* Celular minúsculo (320×568): não sobra nem um pixel. A oferta e os botões
-     valem mais que o hero (regra 11), então ele some. */
-  @media (max-height: 600px) {
-    .hero {
-      display: none;
-    }
-  }
-
-  /* Desktop sobra tela: o hero respira mais, sem empurrar a oferta. */
-  @media (min-width: 48rem) {
-    .hero {
-      height: clamp(5.5rem, 14svh, 10rem);
-    }
-  }
-
-  .hero-poster,
-  .hero :global(.hero-3d),
-  .hero :global(.hero-3d canvas) {
-    position: absolute;
+  .palco {
+    position: fixed;
     inset: 0;
+    z-index: 0;
+    /* lvh: a barra do navegador do celular aparecendo/sumindo não redimensiona o
+       canvas, então a cena não "pula" ao rolar. */
+    height: 100lvh;
+    background: var(--fundo) url('/cena/poster-retrato.webp') center / cover no-repeat;
+  }
+
+  @media (min-width: 48rem) and (orientation: landscape) {
+    .palco {
+      background-image: url('/cena/poster-paisagem.webp');
+    }
+  }
+
+  .palco canvas {
     display: block;
     width: 100%;
     height: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
   }
 
-  .hero-poster {
-    object-fit: cover;
-    object-position: center 45%;
+  .palco canvas[data-pronto] {
+    opacity: 1;
   }
 
-  /* Nunca captura toque: o hero é vitrine, não controle. */
-  .hero :global(.hero-3d) {
-    pointer-events: none;
+  .conteudo {
+    position: relative;
+    z-index: 1;
   }
 
-  /* ---------- placa de corredor ---------- */
+  /* ---------- estação: uma oferta por tela ---------- */
+
+  .estacao {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: var(--e-3);
+    min-height: calc(100svh - var(--barra));
+    padding: var(--e-3) 0;
+  }
+
+  .desce {
+    align-self: center;
+    margin-bottom: -0.25rem;
+    color: var(--texto-tenue);
+    opacity: 0.8;
+  }
+
+  .desce svg {
+    display: block;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  /* ---------- placa (nome e promessa) ---------- */
 
   .placa {
-    position: relative;
     display: flex;
     align-items: center;
     gap: var(--e-3);
-    margin-top: 1rem;
+    margin-bottom: auto;
     padding: var(--e-2) var(--e-3);
-    z-index: 1;
-    background: var(--superficie);
+    background: color-mix(in srgb, var(--superficie) 90%, transparent);
+    border: 1px solid var(--borda);
     border-radius: var(--raio-sm);
     box-shadow: var(--sombra);
-  }
-
-  /* Os dois cabos que seguram a placa no teto do galpão. */
-  .placa::before,
-  .placa::after {
-    content: '';
-    position: absolute;
-    bottom: 100%;
-    width: 2px;
-    height: 1rem;
-    background: var(--borda-forte);
-  }
-  .placa::before {
-    left: 18%;
-  }
-  .placa::after {
-    right: 18%;
   }
 
   /* Anel como o do perfil do Instagram: uma cor só, com folga. */
@@ -197,8 +176,8 @@ if (prateleiras.length === 0) prateleiras.push([]);
 
   .avatar img {
     display: block;
-    width: 3.25rem;
-    height: 3.25rem;
+    width: 3rem;
+    height: 3rem;
     border-radius: 50%;
     object-fit: cover;
   }
@@ -211,7 +190,7 @@ if (prateleiras.length === 0) prateleiras.push([]);
     margin: 0;
     font-family: var(--fonte-display);
     font-weight: 700;
-    font-size: clamp(1.1875rem, 5.2vw, 1.5rem);
+    font-size: clamp(1.0625rem, 4.8vw, 1.375rem);
     line-height: 1.12;
     letter-spacing: -0.01em;
     word-spacing: 0.1em;
@@ -220,112 +199,15 @@ if (prateleiras.length === 0) prateleiras.push([]);
   }
 
   .sub {
-    margin: 0.2rem 0 0;
+    margin: 0.15rem 0 0;
     font-size: 0.8125rem;
     color: var(--texto-suave);
   }
 
   .aviso {
-    margin: var(--e-2) 0 0;
-    font-size: 0.75rem;
+    margin: 0.15rem 0 0;
+    font-size: 0.6875rem;
     color: var(--texto-tenue);
-  }
-
-  /* ---------- estante ---------- */
-
-  .estante {
-    --mont: 0.5rem;
-    position: relative;
-    margin-top: var(--e-2);
-    padding: 0 var(--mont) var(--e-2);
-  }
-
-  /* Os dois montantes azuis da estante. */
-  .estante::before,
-  .estante::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: var(--mont);
-    background: linear-gradient(90deg, var(--montante-claro), var(--montante));
-  }
-  .estante::before {
-    left: 0;
-  }
-  .estante::after {
-    right: 0;
-  }
-
-  .prateleira {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--e-2);
-    align-items: end;
-    padding: var(--e-3) var(--e-2) 0;
-  }
-
-  /* Celular baixo (375×667): a prateleira cola mais na placa pra o botão vermelho
-     não ficar atrás da barra. */
-  @media (max-height: 700px) {
-    .prateleira {
-      padding-top: var(--e-2);
-    }
-  }
-
-  .prateleira + .prateleira {
-    margin-top: var(--e-1);
-  }
-
-  /* A travessa laranja onde as caixas apoiam. Ocupa a prateleira de montante a
-     montante, com a sombra que ela joga na parede. */
-  .prateleira::after {
-    content: '';
-    grid-column: 1 / -1;
-    height: 0.625rem;
-    margin-inline: calc(var(--e-2) * -1);
-    background: var(--travessa);
-    border-top: 1px solid color-mix(in srgb, var(--travessa) 65%, var(--texto));
-    box-shadow: 0 0.5rem 0.75rem -0.4rem rgb(0 0 0 / 0.75);
-  }
-
-  /* Vaga vazia: o espaço marcado no chão da prateleira, esperando a próxima
-     caixa. Não é clicável e não promete nada além de "livre". */
-  .vaga {
-    align-self: end;
-    display: grid;
-    place-items: center;
-    align-content: center;
-    gap: var(--e-1);
-    min-height: 7rem;
-    margin-right: 0.625rem;
-    border: 2px dashed var(--borda-forte);
-    background: repeating-linear-gradient(
-      -45deg,
-      transparent 0 0.5rem,
-      color-mix(in srgb, var(--borda-forte) 14%, transparent) 0.5rem 0.625rem
-    );
-    color: var(--texto-tenue);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .vaga svg {
-    width: 1.25rem;
-    height: 1.25rem;
-    opacity: 0.8;
-  }
-
-  /* ---------- piso ---------- */
-
-  .piso {
-    display: block;
-    width: 100%;
-    height: clamp(2.25rem, 8svh, 4.5rem);
-    color: var(--faixa-piso);
-    opacity: 0.5;
   }
 
   /* ---------- barra "ver todas" ---------- */
@@ -334,9 +216,11 @@ if (prateleiras.length === 0) prateleiras.push([]);
     position: sticky;
     bottom: 0;
     z-index: 10;
+    height: var(--barra);
+    box-sizing: border-box;
     padding: var(--e-3) 0 max(var(--e-3), env(safe-area-inset-bottom));
     background: var(--fundo);
-    /* Sombra com deslocamento: só aparece quando a estante rola por baixo. */
+    /* Sombra com deslocamento: só aparece quando a cena passa por baixo. */
     box-shadow: 0 -14px 20px -14px rgb(0 0 0 / 0.85);
   }
 
@@ -373,4 +257,46 @@ if (prateleiras.length === 0) prateleiras.push([]);
   .ver-todas:hover svg {
     transform: translateX(3px);
   }
+
+  /* Celular baixo (375×667) e minúsculo (320×568): a placa encolhe pra a oferta e
+     os botões continuarem na primeira tela (regra 11). */
+  @media (max-height: 700px) {
+    .aviso {
+      display: none;
+    }
+    .avatar img {
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+  }
 </style>
+
+<script>
+  // A cena 3D é um acabamento: carrega depois da primeira pintura, sob demanda.
+  // Sem WebGL, com movimento reduzido, economia de dados ou aparelho fraco, o
+  // poster fica e tudo continua funcionando.
+  const palco = document.getElementById('cena') as HTMLCanvasElement | null;
+  const nav = navigator as Navigator & { connection?: { saveData?: boolean }; deviceMemory?: number };
+  const poupar =
+    matchMedia('(prefers-reduced-motion: reduce)').matches ||
+    !!nav.connection?.saveData ||
+    (nav.deviceMemory ?? 8) < 2 ||
+    (nav.hardwareConcurrency ?? 8) < 2;
+
+  if (palco && !poupar) {
+    const secoes = [...document.querySelectorAll<HTMLElement>('[data-estacao]')];
+    const iniciar = () =>
+      import('../cena/galpao')
+        .then(({ montar }) =>
+          montar(palco, {
+            estacoes: secoes.map((el) => ({ el, img: el.dataset.img, letra: el.dataset.letra })),
+          }),
+        )
+        .then(() => palco.setAttribute('data-pronto', ''))
+        .catch(() => {
+          /* sem WebGL ou falha ao montar: o poster continua à vista */
+        });
+    if ('requestIdleCallback' in window) requestIdleCallback(iniciar, { timeout: 1500 });
+    else setTimeout(iniciar, 300);
+  }
+</script>

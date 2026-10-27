@@ -9,7 +9,16 @@ import { esquemaOferta, type OfertaBruta } from './schema';
  * validação nunca é contornada por engano.
  */
 
+/**
+ * Preço conferido há mais que isso não é mostrado: o card troca o preço por
+ * "Ver preço atual". Preço velho é pior que preço nenhum. O script de preços
+ * roda a cada 12h, então com tudo funcionando o preço nunca chega perto disso.
+ */
+export const VALIDADE_PRECO_DIAS = 2;
+
 export type Oferta = OfertaBruta & {
+  /** O preço foi conferido recentemente e pode ser mostrado. */
+  precoValido: boolean;
   /** % de desconto, arredondado. Só existe quando há precoDe. */
   desconto?: number;
   /** Quanto o visitante deixa de gastar, em reais. */
@@ -55,7 +64,20 @@ function validar(): OfertaBruta[] {
   return resultado.data;
 }
 
+/** Dias entre duas datas AAAA-MM-DD (b - a). */
+function diasEntre(a: string, b: string): number {
+  return Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
+}
+
+/** Hoje, AAAA-MM-DD, no fuso do Brasil (o build roda em UTC). */
+function hojeBR(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+}
+
 function derivar(oferta: OfertaBruta): Oferta {
+  const precoValido =
+    oferta.conferidoEm !== undefined && diasEntre(oferta.conferidoEm, hojeBR()) <= VALIDADE_PRECO_DIAS;
+
   const desconto =
     oferta.precoDe !== undefined
       ? Math.round((1 - oferta.preco / oferta.precoDe) * 100)
@@ -66,7 +88,7 @@ function derivar(oferta: OfertaBruta): Oferta {
       ? Math.round((oferta.precoDe - oferta.preco) * 100) / 100
       : undefined;
 
-  return { ...oferta, desconto, economia, href: `/go/${oferta.id}` };
+  return { ...oferta, precoValido, desconto, economia, href: `/go/${oferta.id}` };
 }
 
 /** Todas as ofertas, da mais nova pra mais antiga. */

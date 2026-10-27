@@ -6,8 +6,9 @@ oferta postada no Instagram vira um card com o botão pro anúncio.
 
 Site: https://achadoseofertaspatto.netlify.app
 
-HTML e CSS estáticos. **0 KB de JavaScript no celular**; no desktop, o hero 3D
-(three + GSAP, ~225 KB gzip) carrega só a partir de 768px.
+A página é um galpão 3D (WebGL, three puro, ~130 KB gzip, carregado depois da
+primeira pintura). Sem WebGL ou com movimento reduzido, um poster ocupa o lugar.
+O preço é lido do Mercado Livre sozinho, 2x por dia.
 
 ---
 
@@ -67,6 +68,15 @@ por `/go/todas`, então o link não aparece no HTML. Pra trocar o destino, edite
 
 ---
 
+## Preço automático
+
+`node scripts/atualizar-precos.mjs` lê o preço de cada oferta na vitrine do ML e
+grava em `ofertas.json`. O GitHub Actions faz isso às 09h e 21h e o Netlify
+publica. Se a leitura falhar por mais de 2 dias, o card esconde o preço e o botão
+vira "Ver preço atual". Detalhes no [`CLAUDE.md`](./CLAUDE.md).
+
+---
+
 ## Rodar local
 
 Precisa de Node 22.12+ e npm.
@@ -100,8 +110,8 @@ O Netlify builda e publica a cada push. O `netlify.toml` já tem o build
 ## Stack
 
 Astro 7, TypeScript, Zod e `@astrojs/netlify`. Tailwind v4 entra só pelo reset.
-React, three.js e GSAP rodam só no hero 3D do desktop. Shadcn, Kokonut UI e
-Motion estão instalados mas **não são usados**. Versões exatas no
+three.js roda só na cena 3D. React, Shadcn, Kokonut UI e Motion estão
+instalados mas **não são usados**. Versões exatas no
 `package.json`.
 
 Convenções do projeto: [`CLAUDE.md`](./CLAUDE.md).

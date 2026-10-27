@@ -63,20 +63,6 @@
   --foto-fundo: var(--p-camisa);
   --foto-tinta: var(--p-tinta-500);
 
-  /* O galpão. Estante de verdade: montante azul, travessa laranja. */
-  --montante: var(--p-terno);
-  --montante-claro: var(--p-terno-claro);
-  --travessa: var(--p-bico);
-  /* Caixa em projeção oblíqua, luz vindo de cima: o topo é a face clara, a
-     lateral a escura. A fita é laranja, como a travessa. */
-  --caixa-frente: var(--p-tinta-800);
-  --caixa-topo: var(--p-tinta-600);
-  --caixa-lado: var(--p-tinta-900);
-  --fita: var(--p-bico);
-  --faixa-piso: var(--p-bico);
-
-  --holo: var(--p-holo);
-
   --fonte-display: "Clash Display", "Satoshi", ui-sans-serif, system-ui, sans-serif;
   --fonte-corpo: "Satoshi", ui-sans-serif, system-ui, -apple-system, sans-serif;
 

@@ -151,6 +151,12 @@
       "skillPath": ".claude/skills/playcanvas-engine/SKILL.md",
       "computedHash": "155663377d31133ed38172feb5dc565e8b20c3ddba183d685c689fb028936e16"
     },
+    "r3f-best-practices": {
+      "source": "emalorenzo/three-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/r3f-best-practices/SKILL.md",
+      "computedHash": "5d231c2345fee302b580549ef7a7446ef5a6c9598437f4c305eeb62e86beb273"
+    },
     "react-spring-physics": {
       "source": "freshtechbro/claudedesignskills",
       "sourceType": "github",
@@ -192,6 +198,12 @@
       "sourceType": "github",
       "skillPath": ".claude/skills/substance-3d-texturing/SKILL.md",
       "computedHash": "6a32a05c99f7bdf0cf0837ae4709b2f4c108c206135e6957b6fb1734089368bc"
+    },
+    "three-best-practices": {
+      "source": "emalorenzo/three-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/three-best-practices/SKILL.md",
+      "computedHash": "f1d2981c4a865dd90d7fbd4e43df4570a0275cae3fde51199e03b2c8a20a4776"
     },
     "threejs-webgl": {
       "source": "freshtechbro/claudedesignskills",

@@ -61,12 +61,22 @@ export const esquemaOferta = z
       .union([z.url(), z.string().regex(/^\/[^\s]+$/, 'caminho local tem que começar com "/"')])
       .optional(),
 
+    /**
+     * Id do anúncio no ML (MLB123...). Preenchido sozinho por
+     * scripts/atualizar-precos.mjs na primeira leitura; é o que garante que o
+     * preço atualizado é do MESMO anúncio.
+     */
+    mlb: z.string().regex(/^MLB\d+$/).optional(),
+
     /** SEU link de afiliado. Nunca aparece no HTML: só atrás de /go/<id>. */
     linkAfiliado: z.url(),
 
     /** Data da publicação. Define a ordem do feed (mais nova no topo). */
     criadoEm: data,
-    /** Quando você conferiu o preço. Aparece no card. */
+    /**
+     * Quando o preço foi conferido (o script de preços preenche). Preço
+     * conferido há mais de VALIDADE_PRECO_DIAS dias não aparece no site.
+     */
     conferidoEm: data.optional(),
   })
   .refine((o) => o.precoDe === undefined || o.precoDe > o.preco, {

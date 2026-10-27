@@ -5,12 +5,15 @@
 ## O que é
 
 A página do perfil **@achadoseofertas.patto** (Instagram, "Patto | Achados &
-Ofertas"). Uma página só, numa coluna de largura de celular, **tudo na primeira
-tela**, com a cara de um **galpão**: uma placa suspensa com a copy da bio, uma
-estante com uma caixa por oferta (duas por prateleira) e, colado no fim da tela,
-o botão "Ver todas as ofertas" (a vitrine geral de afiliado). Cada caixa tem o
-seu botão vermelho "Pegar oferta". Conforme ofertas entram em
-`src/data/ofertas.json`, a estante ganha prateleiras sozinha.
+Ofertas"). Uma página só, numa coluna de largura de celular, com a cara de um
+**galpão 3D**: a página inteira é uma cena WebGL minimalista (um corredor com um
+pedestal por oferta; a caixa do pedestal mostra a foto do produto) e rolar a
+página caminha pelo corredor. Texto, preço e links são **HTML por cima da cena**.
+Em cada tela: a placa com a copy da bio (só na primeira), o card da oferta com o
+botão vermelho "Pegar oferta" e, colado no fim da tela, o botão laranja "Ver todas
+as ofertas" (a vitrine geral de afiliado). Conforme ofertas entram em
+`src/data/ofertas.json`, o corredor ganha pedestais sozinho. O preço é lido do ML
+automaticamente (ver "Preço").
 
 - URL: https://achadoseofertaspatto.netlify.app (está na bio do Instagram)
 - Bio do Instagram, que é a copy do site **palavra por palavra** (quem clica na
@@ -29,11 +32,14 @@ seu botão vermelho "Pegar oferta". Conforme ofertas entram em
    o link `mercadolivre.com/sec/...` que lista todos os produtos do dono);
    `/go/<id>` leva ao link de uma oferta. `todas` é id reservado.
 3. **Dado inválido derruba o build** (Zod), com mensagem apontando o campo.
-4. **0 KB de JavaScript no celular.** A loja (placa, estante, caixas, barra) é
-   HTML + CSS. O único JS é a ilha do hero 3D (`HeroGalpao`), que só baixa em
-   `min-width: 48rem` (`client:media`): no celular o hero é um poster em `<img>`.
-   Shadcn, Kokonut e Motion continuam parados. Não importar nenhum sem o
-   usuário pedir. GSAP só dentro do hero (`useGSAP`), nunca solto.
+4. **O único JS é a cena 3D, e ela é opcional.** `three` puro (~130 KB gzip),
+   carregado depois da primeira pintura (`src/cena/galpao.ts`), sem React, sem
+   GSAP, sem framework. A página inteira funciona sem ele: o poster
+   (`public/cena/poster-*.webp`) fica no lugar da cena sem WebGL, com
+   `prefers-reduced-motion`, com economia de dados ou em aparelho fraco
+   (menos de 2 GB de RAM ou 2 núcleos). A cena **só desenha enquanto algo se
+   move** (entrada, rolagem, cursor): parada, não gasta bateria. React, shadcn,
+   Kokonut e Motion continuam parados. Não importar nenhum sem o usuário pedir.
 5. **Mobile-first, e o link a UM toque.** O público vem do Instagram, no celular.
    O card inteiro é clicável.
 6. **Nada de prova social inventada.** Nota, avaliações e ranking são copiados
@@ -64,50 +70,34 @@ seu botão vermelho "Pegar oferta". Conforme ofertas entram em
     Proibido: kicker acima de heading, grade de cards iguais como estrutura de
     página, gradiente em texto, sombra sem deslocamento.
 
-## O galpão (visual)
+## O galpão 3D (visual)
 
-O "3D" é **CSS 3D em projeção oblíqua**, não WebGL e não three.js, de propósito:
+A página é uma cena WebGL fixa atrás do conteúdo (`.palco`, `position: fixed`,
+`100lvh` pra a barra do navegador do celular não redimensionar o canvas).
 
-- A tentativa anterior de galpão em WebGL (R3F, primitivos) parecia um diagrama e
-  foi rejeitada; o histórico dela está nos commits até `c3ecde9`.
-- Projeção oblíqua mantém o texto plano e nítido (sem distorção por rotação) e o
-  botão no toque, com 0 KB de JS e a oferta na primeira tela.
-
-Peças, todas em CSS puro:
-
-- **Placa suspensa** (`.placa`): o cabeçalho, com dois cabos até o teto.
-- **Estante** (`.estante`): montantes azuis (`--montante`, o azul do terno) e uma
-  travessa laranja por prateleira (`--travessa`, o laranja do bico).
-- **Caixa** (`Oferta.astro`): frente plana + topo e lateral inclinados por `skew`
-  (45°). Topo claro com fita laranja, lateral escura (luz vindo de cima). Os
-  tokens são `--caixa-frente/topo/lado` e `--fita`.
-- **Vaga livre**: espaço tracejado quando a prateleira tem uma caixa só.
-- **Piso**: duas faixas de corredor em SVG, convergindo pro fundo.
-- **Movimento**: um só, as caixas assentam na prateleira ao abrir.
-
-Foto de produto fica num tom claro (`--foto-fundo`, `multiply`): foto de anúncio
-tem fundo branco e o produto costuma ser escuro.
-
-## O hero 3D (só desktop; celular tem poster)
-
-Faixa baixa no topo (`.hero`, `clamp(3.5rem, 9svh, 9rem)` no celular e
-`clamp(5.5rem, 14svh, 10rem)` no desktop): a entrada do galpão vista do corredor,
-com estantes (InstancedMesh), fita de LED no teto, parede de vidro, letreiro
-holográfico "Achados & Ofertas" e o Patto como billboard. **Não é 100vh**: a regra
-11 manda (a oferta e os botões ficam na primeira tela). Em `max-height: 600px`
-(320×568) o hero some.
-
-- `src/components/hero/cena.ts`: a cena em three puro (sem R3F, pra pesar menos).
-  Cores lidas dos tokens CSS, nenhum hex. Só no cliente (dynamic import).
-- `src/components/hero/HeroGalpao.tsx`: a ilha. Poster fica embaixo o tempo todo;
-  o canvas entra por cima. Laço pausa fora da tela e com a aba escondida. Sem
-  WebGL ou com `prefers-reduced-motion`, não monta e o poster fica. Entrada com
-  GSAP (`useGSAP`). `pointer-events: none`.
-- `public/hero/poster.webp`: é o que o celular mostra. **Regerar quando mudar a
-  cena**: `npm run build`, servir `dist/`, abrir `/hero-poster` no Edge/Chrome com
-  `--enable-unsafe-swiftshader --use-angle=swiftshader` em 1088×288 e converter
-  pra webp. Cor nova da cena entra como token em `tokens.css` (`--p-holo`).
-- `/hero-poster` é gerador (noindex), como o `/og`.
+- **Cena** (`src/cena/galpao.ts`, three puro): piso com faixas âmbar, fita de LED
+  ciano no teto, estantes ao fundo (InstancedMesh), parede de vidro com o letreiro
+  holográfico "Achados & Ofertas", e **um pedestal por oferta** com uma caixa de
+  papelão cuja face da frente é a foto do produto (foto de anúncio tem fundo
+  branco: vai sobre `--foto-fundo` com multiply, como no card). Mais um pedestal
+  vazio no fim do corredor (sinal de que cresce). O Patto é um billboard 2D ao
+  lado da primeira caixa. Cores lidas dos tokens CSS: nenhum hex no TS. Cor nova
+  da cena entra como token em `tokens.css` (`--p-holo`).
+- **Rolagem**: cada `<section data-estacao>` é uma estação. A posição de cada uma
+  na página move a câmera por um pedestal (data-driven: lê o DOM, nada de
+  produto hardcoded). Cada seção tem `min-height: 100svh - barra`, então uma
+  oferta = uma tela, e com uma oferta só a página nem rola.
+- **Câmera por tela**: retrato abre o campo de visão (58°) e usa `setViewOffset`
+  pra subir a caixa na tela (`foco`), porque o card ocupa a metade de baixo.
+- **Poster**: `public/cena/poster-retrato.webp` (780×1688) e `poster-paisagem.webp`
+  (1600×900). A caixa do poster mostra o Patto, não um produto, pra nunca ficar
+  velho. **Regerar quando mudar a cena**: `npm run build`, servir `dist/`, abrir
+  `/cena-poster?w=780&h=1688&foco=0.2&leve=1` (retrato) e
+  `/cena-poster?w=1600&h=900&foco=0.1` (paisagem) no Edge/Chrome headless com
+  `--enable-unsafe-swiftshader --use-angle=swiftshader --window-size=<w>,<h>`,
+  tirar print e converter pra webp. `/cena-poster` é gerador (noindex), como `/og`.
+- **Card** (`Oferta.astro`): HTML puro sobre a cena, translúcido, com miniatura da
+  foto (o poster não tem a foto do produto), título, preço, selos e o botão.
 
 ## Mapa de pastas
 
@@ -117,15 +107,18 @@ src/
   lib/schema.ts            Zod: formato de uma oferta
   lib/ofertas.ts           carrega, valida, deriva (desconto, economia, href)
   lib/site.ts              nome, Instagram e a vitrine geral de afiliado
-  components/Oferta.astro  uma caixa na prateleira (uma oferta)
-  components/hero/         ilha do hero 3D (cena.ts, HeroGalpao, HeroPoster)
+  components/Oferta.astro  o card HTML de uma oferta (sobre a cena)
+  cena/galpao.ts           a cena 3D (three puro), carregada sob demanda
   layouts/Base.astro       <head>, OG, rodapé com aviso de afiliado
-  pages/index.astro        placa + estante (prateleiras) + piso + barra "ver todas"
+  pages/index.astro        palco (poster + canvas) + placa + estações + barra "ver todas"
   pages/go/[id].ts         302 pra vitrine (/go/todas) ou oferta (roda no servidor)
   pages/og.astro           gerador da imagem de compartilhamento (noindex)
+  pages/cena-poster.astro  gerador dos posters da cena (noindex)
+scripts/atualizar-precos.mjs  lê o preço de cada oferta no ML (roda no GitHub Actions)
+.github/workflows/atualizar-precos.yml  roda o script 2x por dia e commita
   styles/tokens.css        cores, tipografia, espaçamento
 public/
-  hero/poster.webp         poster do hero (celular)
+  cena/poster-*.webp       poster da cena (retrato e paisagem)
   marca/patto.webp         avatar (recorte de cabeça e ombros da arte do Patto)
   produtos/*.webp          foto de cada oferta
   og.jpg, favicon.png, apple-touch-icon.png
@@ -133,10 +126,12 @@ public/
 
 ## Como publicar uma oferta
 
-1. Adicionar uma entrada em `src/data/ofertas.json`.
-2. Se tiver foto, salvar em `public/produtos/<id>.webp` e apontar `img`.
-3. `npm run build` — se o JSON estiver errado, o erro aponta o campo.
-4. Commit e push; o Netlify publica sozinho.
+1. Adicionar uma entrada em `src/data/ofertas.json` (o `preco` inicial pode ser
+   aproximado: o script de preços corrige e preenche `mlb` e `conferidoEm`).
+2. Rodar `node scripts/atualizar-precos.mjs` pra ler o preço de verdade.
+3. Se tiver foto, salvar em `public/produtos/<id>.webp` e apontar `img`.
+4. `npm run build` — se o JSON estiver errado, o erro aponta o campo.
+5. Commit e push; o Netlify publica sozinho.
 
 Campos: `id` (slug único), `titulo`, `preco`, `precoDe?`, `condicaoPreco?`
 (ex.: "no Pix"), `precoAlternativo? {valor, rotulo}`, `loja?`, `lojaOficial?`,
@@ -164,6 +159,29 @@ do Buds 6 Play.
   vitrine com o produto no topo e precisa tocar em "Ir para produto". Se o dono
   tiver o link direto do produto (opção de link do produto no painel de afiliados),
   provavelmente converte mais: um toque a menos.
+
+## Preço (automático, sem a API do ML)
+
+`scripts/atualizar-precos.mjs` segue o `linkAfiliado` (meli.la redireciona pra
+`/social/<perfil>`, renderizada no servidor), acha o card do produto e lê
+"Antes"/"Agora". É a mesma tela que o visitante vê ao clicar, então o preço lido
+é o que ele encontra.
+
+- **Só atualiza o mesmo anúncio**: na primeira leitura aprende o id (`mlb`)
+  cruzando o título com o do card; nas seguintes exige o mesmo `mlb`.
+- **Preço de vitrine**: o script apaga `condicaoPreco` e `precoAlternativo`
+  (digitados à mão, não dá pra conferir). Não lê Pix nem parcelas.
+- **Falhou ou o ML bloqueou? Não mexe em nada.** `conferidoEm` envelhece e, passados
+  `VALIDADE_PRECO_DIAS` (2) dias, o card esconde o preço e o botão vira "Ver preço
+  atual" (`src/lib/ofertas.ts`, campo derivado `precoValido`). Preço velho é pior
+  que preço nenhum.
+- **Roda sozinho**: `.github/workflows/atualizar-precos.yml`, 09h e 21h de Brasília
+  (e à mão na aba Actions). Commita `ofertas.json` e `precos-rodada.json` na main;
+  o Netlify publica. O `precos-rodada.json` muda todo dia de propósito: garante um
+  build diário pra regra do "preço velho some" valer.
+- À mão: `node scripts/atualizar-precos.mjs` (`--dry` só mostra, não grava).
+- Se o ML passar a bloquear o IP do GitHub, o job falha (todas as ofertas sem
+  leitura), os preços somem em 2 dias e o site segue funcionando "sem preço".
 
 ## Skills de agente (locais, fora do git; reinstalar com `npx skills add`)
 

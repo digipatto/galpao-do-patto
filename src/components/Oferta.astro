@@ -6,11 +6,9 @@ interface Props {
   oferta: Oferta;
   /** A primeira oferta está na primeira tela: carrega já, sem lazy. */
   prioridade?: boolean;
-  /** Posição na página, só pra escalonar a entrada das caixas. */
-  ordem?: number;
 }
 
-const { oferta, prioridade = false, ordem = 0 } = Astro.props;
+const { oferta, prioridade = false } = Astro.props;
 
 // "2026-10-24" -> "24/10". Quebra a string em vez de usar Date: new Date() de
 // uma data sem horário vira meia-noite UTC e, no fuso do Brasil, cai no dia
@@ -20,169 +18,122 @@ const diaMes = (iso: string) => {
   return `${dia}/${mes}`;
 };
 
-const inicial = oferta.titulo.trim().charAt(0).toUpperCase();
-
 const selos = [
   oferta.ranking,
   oferta.full && 'Full',
   oferta.lojaOficial && 'Loja oficial',
   oferta.freteGratis && 'Frete grátis',
 ].filter(Boolean) as string[];
+
+// Preço conferido há muito tempo não é mostrado: o botão manda ver o preço
+// atual no Mercado Livre. Ver VALIDADE_PRECO_DIAS em src/lib/ofertas.ts.
+const mostraPreco = oferta.precoValido;
 ---
 
 <!--
-  Uma oferta é uma CAIXA na prateleira, em projeção oblíqua: a frente é plana
-  (o texto nunca é distorcido por rotação 3D) e o topo e a lateral são faces
-  inclinadas por skew. É o que dá profundidade sem custar legibilidade nem JS.
+  O card é HTML puro por cima da cena 3D: o texto fica nítido, o botão fica no
+  toque e o leitor de tela lê tudo. A caixa 3D (com a foto) está na cena.
 -->
-<article class="caixa" style={`--i: ${ordem}`}>
-  <div class="frente">
-    <div class="foto">
-      {
-        oferta.img ? (
+<article class="oferta">
+  <div class="topo">
+    {
+      oferta.img && (
+        <div class="miniatura">
           <img
             src={oferta.img}
             alt=""
+            width="64"
+            height="64"
             loading={prioridade ? 'eager' : 'lazy'}
             fetchpriority={prioridade ? 'high' : undefined}
             decoding="async"
           />
-        ) : (
-          <span class="inicial" aria-hidden="true">
-            {inicial}
-          </span>
-        )
-      }
-      {oferta.desconto !== undefined && <span class="desconto numeros">−{oferta.desconto}%</span>}
-    </div>
+        </div>
+      )
+    }
 
-    <h3>{oferta.titulo}</h3>
+    <div class="info">
+      <h2>{oferta.titulo}</h2>
 
-    <p class="precos">
       {
-        oferta.precoDe !== undefined && (
-          <span class="de numeros">
-            <span class="sr">Preço cheio:</span>
-            {formatarPreco(oferta.precoDe)}
-          </span>
+        mostraPreco ? (
+          <p class="precos">
+            {oferta.precoDe !== undefined && (
+              <span class="de numeros">
+                <span class="sr">Preço cheio:</span>
+                {formatarPreco(oferta.precoDe)}
+              </span>
+            )}
+            <strong class="por numeros">{formatarPreco(oferta.preco)}</strong>
+            {oferta.desconto !== undefined && <span class="desconto numeros">−{oferta.desconto}%</span>}
+          </p>
+        ) : (
+          <p class="sem-preco">O preço muda no Mercado Livre. Veja o de agora.</p>
         )
       }
-      <strong class="por numeros">{formatarPreco(oferta.preco)}</strong>
-      {oferta.condicaoPreco && <span class="condicao">{oferta.condicaoPreco}</span>}
-    </p>
-
-    {
-      oferta.precoAlternativo && (
-        <p class="extra numeros">
-          ou {formatarPreco(oferta.precoAlternativo.valor)} {oferta.precoAlternativo.rotulo}
-        </p>
-      )
-    }
-
-    {
-      oferta.parcelas && (
-        <p class="extra numeros">
-          ou {oferta.parcelas.vezes}× de {formatarPreco(oferta.parcelas.valor)}
-          {oferta.parcelas.semJuros ? ' sem juros' : ''}
-        </p>
-      )
-    }
-
-    {
-      (selos.length > 0 || oferta.avaliacao !== undefined) && (
-        <ul class="fatos">
-          {oferta.avaliacao !== undefined && (
-            <li>
-              <svg class="estrela" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-                <path
-                  d="M10 1.6l2.47 5.26 5.53.82-4 4.06.95 5.76L10 14.8l-4.95 2.7.95-5.76-4-4.06 5.53-.82z"
-                  fill="currentColor"
-                />
-              </svg>
-              <span class="numeros">
-                {oferta.avaliacao.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}
-                {oferta.avaliacoes !== undefined && ` (${oferta.avaliacoes})`}
-              </span>
-            </li>
-          )}
-          {selos.map((s) => <li class="selo">{s}</li>)}
-        </ul>
-      )
-    }
-
-    <!-- O botão é o único link da caixa, esticado sobre ela toda: um toque em
-         qualquer lugar leva ao anúncio, e o leitor de tela ouve um destino só. -->
-    <a class="cta" href={oferta.href} rel="sponsored nofollow noopener">
-      Pegar oferta
-      <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-        <path
-          d="M4 10h11M11 5l5 5-5 5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"></path>
-      </svg>
-    </a>
-
-    {oferta.conferidoEm && <p class="nota">Conferido em {diaMes(oferta.conferidoEm)}</p>}
+    </div>
   </div>
+
+  {
+    (selos.length > 0 || oferta.avaliacao !== undefined) && (
+      <ul class="fatos">
+        {oferta.avaliacao !== undefined && (
+          <li>
+            <svg class="estrela" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+              <path
+                d="M10 1.6l2.47 5.26 5.53.82-4 4.06.95 5.76L10 14.8l-4.95 2.7.95-5.76-4-4.06 5.53-.82z"
+                fill="currentColor"
+              />
+            </svg>
+            <span class="numeros">
+              {oferta.avaliacao.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}
+              {oferta.avaliacoes !== undefined && ` (${oferta.avaliacoes})`}
+            </span>
+          </li>
+        )}
+        {selos.map((s) => <li class="selo">{s}</li>)}
+      </ul>
+    )
+  }
+
+  <!-- O botão é o único link do card, esticado sobre ele todo: um toque em
+       qualquer lugar leva ao anúncio, e o leitor de tela ouve um destino só. -->
+  <a class="cta" href={oferta.href} rel="sponsored nofollow noopener">
+    {mostraPreco ? 'Pegar oferta' : 'Ver preço atual'}
+    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <path
+        d="M4 10h11M11 5l5 5-5 5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"></path>
+    </svg>
+  </a>
+
+  {mostraPreco && oferta.conferidoEm && <p class="nota">Preço do ML em {diaMes(oferta.conferidoEm)}. Pode mudar.</p>}
 </article>
 
 <style>
-  .caixa {
-    /* profundidade da caixa: quanto o topo e a lateral aparecem */
-    --d: 0.625rem;
+  .oferta {
     position: relative;
-    padding: var(--d) var(--d) 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-2);
+    padding: var(--e-3);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    background: color-mix(in srgb, var(--superficie) 94%, transparent);
+    box-shadow: var(--sombra);
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    /* O único movimento da página: as caixas assentam na prateleira ao abrir.
-       O estado padrão (sem animação) já é totalmente visível. */
-    animation: assenta 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: calc(var(--i) * 80ms);
   }
 
-  @keyframes assenta {
-    from {
-      transform: translateY(-0.75rem);
-      opacity: 0;
-    }
+  .oferta:hover {
+    transform: translateY(-2px);
   }
 
-  /* Topo da caixa, com a fita. A face é um retângulo inclinado em 45°. */
-  .caixa::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: calc(100% - var(--d));
-    height: var(--d);
-    background:
-      linear-gradient(90deg, transparent 36%, var(--fita) 36% 64%, transparent 64%),
-      var(--caixa-topo);
-    transform-origin: bottom left;
-    transform: skewX(-45deg);
-  }
-
-  /* Lateral da caixa: a face na sombra. */
-  .caixa::after {
-    content: '';
-    position: absolute;
-    top: var(--d);
-    right: 0;
-    width: var(--d);
-    height: calc(100% - var(--d));
-    background: var(--caixa-lado);
-    transform-origin: top left;
-    transform: skewY(-45deg);
-  }
-
-  .caixa:hover {
-    transform: translateY(-3px);
-  }
-
-  .caixa:active {
-    transform: translateY(0) scale(0.99);
+  .oferta:active {
+    transform: scale(0.99);
   }
 
   .sr {
@@ -194,63 +145,42 @@ const selos = [
     white-space: nowrap;
   }
 
-  .frente {
+  .topo {
     display: flex;
-    flex-direction: column;
-    gap: var(--e-1);
-    padding: 0.5rem 0.625rem 0.625rem;
-    background: var(--caixa-frente);
+    align-items: center;
+    gap: var(--e-3);
   }
 
-  /* Foto de anúncio tem fundo branco e o produto costuma ser escuro. Sobre a
-     caixa escura ele sumiria, então a foto fica num tom claro e o branco dela
-     se funde com ele (multiply). */
-  .foto {
-    position: relative;
-    display: grid;
-    place-items: center;
-    aspect-ratio: 4 / 3;
-    margin-bottom: var(--e-1);
+  /* Foto de anúncio tem fundo branco e o produto costuma ser escuro: tom claro
+     com multiply, igual à face da caixa na cena. */
+  .miniatura {
+    flex: 0 0 auto;
+    width: 4rem;
+    height: 4rem;
     overflow: hidden;
+    border-radius: var(--raio-sm);
     background: var(--foto-fundo);
   }
 
-    /* A imagem preenche o contêiner e o object-fit cuida da proporção. Com
-     max-height: 100% a foto vazava e era cortada: porcentagem de altura não
-     resolve dentro de um contêiner dimensionado só por aspect-ratio. */
-  .foto img {
-    position: absolute;
-    inset: 0;
+  .miniatura img {
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: contain;
-    padding: var(--e-2);
+    padding: 0.25rem;
     mix-blend-mode: multiply;
   }
 
-  .inicial {
-    font-family: var(--fonte-display);
-    font-weight: 700;
-    font-size: 2.25rem;
-    color: var(--foto-tinta);
-  }
-
-  .desconto {
-    position: absolute;
-    top: var(--e-1);
-    left: var(--e-1);
-    padding: 0.1rem 0.4rem;
-    border-radius: 999px;
-    background: var(--cta);
-    color: var(--cta-texto);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 1.4;
+  .info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
   }
 
   /* Satoshi, não Clash Display: a Clash é fonte de título grande e em 15px as
-     letras se fecham ("com" vira "oom"). Nome de produto precisa ler rápido. */
-  h3 {
+     letras se fecham. Nome de produto precisa ler rápido. */
+  h2 {
     margin: 0;
     font-family: var(--fonte-corpo);
     font-weight: 700;
@@ -258,8 +188,8 @@ const selos = [
     line-height: 1.25;
     color: var(--texto);
     display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -269,7 +199,7 @@ const selos = [
     flex-wrap: wrap;
     align-items: baseline;
     gap: 0 var(--e-2);
-    margin: var(--e-1) 0 0;
+    margin: 0;
   }
 
   .de {
@@ -288,20 +218,21 @@ const selos = [
     color: var(--texto);
   }
 
-  /* "no Pix": a condição do preço, colada nele e legível. */
-  .condicao {
+  .desconto {
     align-self: center;
     padding: 0.05rem 0.45rem;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--marca) 16%, transparent);
-    color: var(--marca);
+    background: var(--cta);
+    color: var(--cta-texto);
     font-size: 0.6875rem;
     font-weight: 700;
+    line-height: 1.5;
   }
 
-  .extra {
+  .sem-preco {
     margin: 0;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
+    line-height: 1.35;
     color: var(--texto-suave);
   }
 
@@ -309,8 +240,8 @@ const selos = [
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--e-1);
-    margin: var(--e-1) 0 0;
+    gap: var(--e-1) var(--e-2);
+    margin: 0;
     padding: 0;
     list-style: none;
     font-size: 0.6875rem;
@@ -341,25 +272,25 @@ const selos = [
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--e-1);
+    gap: var(--e-2);
     min-height: 2.875rem; /* alvo de toque */
-    margin-top: var(--e-2);
-    padding: 0.55rem 0.5rem;
+    padding: 0.55rem 1rem;
     white-space: nowrap;
     border-radius: 999px;
     background: var(--cta);
     color: var(--cta-texto);
-    font-size: 0.9375rem;
+    font-size: 1rem;
     font-weight: 700;
     text-decoration: none;
     transition: background-color 0.15s;
   }
 
-  /* Estica o link sobre a caixa inteira (o ancestral posicionado é .caixa). */
+  /* Estica o link sobre o card inteiro (o ancestral posicionado é .oferta). */
   .cta::after {
     content: '';
     position: absolute;
     inset: 0;
+    border-radius: var(--raio);
   }
 
   .cta:hover {
@@ -373,41 +304,30 @@ const selos = [
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .caixa:hover .cta svg {
+  .oferta:hover .cta svg {
     transform: translateX(3px);
   }
 
   .nota {
-    margin: 0;
+    margin: -0.25rem 0 0;
     text-align: center;
     font-size: 0.6875rem;
     line-height: 1.4;
     color: var(--texto-tenue);
   }
 
-  /* Celular estreito (320px): a caixa fica com ~110px de frente. Menos recheio
-     e sem a seta, pra o texto do botão caber. */
+  /* Celular estreito (320px): menos recheio, o botão continua inteiro. */
   @media (max-width: 22.5rem) {
-    .caixa {
-      --d: 0.5rem;
+    .oferta {
+      padding: var(--e-2) var(--e-3);
+      gap: 0.375rem;
     }
-    .frente {
-      padding: 0.5rem;
+    .miniatura {
+      width: 3.25rem;
+      height: 3.25rem;
     }
-    .por {
-      font-size: 1.25rem;
-    }
-    .cta svg {
-      display: none;
-    }
-    /* Sem espaço: o botão de compra vale mais que as linhas secundárias. */
-    .extra,
     .fatos {
       display: none;
-    }
-    h3 {
-      -webkit-line-clamp: 4;
-      line-clamp: 4;
     }
   }
 </style>
