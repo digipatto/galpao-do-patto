@@ -8,7 +8,7 @@ Site: https://achadoseofertaspatto.netlify.app
 
 A página é um galpão 3D (WebGL, three puro, ~130 KB gzip, carregado depois da
 primeira pintura). Sem WebGL ou com movimento reduzido, um poster ocupa o lugar.
-O preço é lido do Mercado Livre sozinho, 2x por dia.
+O preço é lido do Mercado Livre sozinho, 1x por dia.
 
 ---
 
@@ -71,9 +71,9 @@ por `/go/todas`, então o link não aparece no HTML. Pra trocar o destino, edite
 ## Preço automático
 
 `node scripts/atualizar-precos.mjs` lê o preço de cada oferta na vitrine do ML e
-grava em `ofertas.json`. O GitHub Actions faz isso às 09h e 21h e o Netlify
-publica. Se a leitura falhar por mais de 2 dias, o card esconde o preço e o botão
-vira "Ver preço atual". Detalhes no [`CLAUDE.md`](./CLAUDE.md).
+grava em `ofertas.json`. O GitHub Actions faz isso todo dia às 09h (e só faz
+commit se algum preço mudou) e o Netlify publica. Se a leitura falhar por mais de
+2 dias, o card esconde o preço e o botão vira "Ver preço atual". Detalhes no [`CLAUDE.md`](./CLAUDE.md).
 
 ---
 

@@ -2,10 +2,11 @@ name: Atualizar precos
 
 # Lê o preço de cada oferta na vitrine do Mercado Livre (scripts/atualizar-precos.mjs)
 # e, se algo mudou, faz commit na main. O Netlify publica sozinho a cada push.
-# 09:00 e 21:00 no horário de Brasília (UTC-3). Também dá pra rodar à mão na aba Actions.
+# Uma vez por dia, 09:00 de Brasília (UTC-3). Só faz commit (e portanto só gasta
+# um deploy) quando algum preço mudou. Também roda à mão na aba Actions.
 on:
   schedule:
-    - cron: '0 12,0 * * *'
+    - cron: '0 12 * * *'
   workflow_dispatch:
 
 permissions:
@@ -33,7 +34,7 @@ jobs:
         run: |
           git config user.name "robo-precos"
           git config user.email "robo-precos@users.noreply.github.com"
-          git add src/data/ofertas.json src/data/precos-rodada.json
+          git add src/data/ofertas.json
           if git diff --cached --quiet; then
             echo "Sem mudancas."
           else

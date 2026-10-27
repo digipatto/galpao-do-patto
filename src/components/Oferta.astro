@@ -1,6 +1,6 @@
 ---
 import type { Oferta } from '../lib/ofertas';
-import { formatarPreco } from '../lib/ofertas';
+import { formatarPreco, VALIDADE_PRECO_DIAS } from '../lib/ofertas';
 
 interface Props {
   oferta: Oferta;
@@ -26,7 +26,11 @@ const selos = [
 ].filter(Boolean) as string[];
 
 // Preço conferido há muito tempo não é mostrado: o botão manda ver o preço
-// atual no Mercado Livre. Ver VALIDADE_PRECO_DIAS em src/lib/ofertas.ts.
+// atual no Mercado Livre. O HTML leva as duas versões e `data-velho` escolhe
+// (CSS). O build marca `data-velho` se já nasce velho; um script mínimo na
+// página marca no navegador se envelhecer depois do build. Assim o preço velho
+// some sem precisar de um deploy por dia. Ver VALIDADE_PRECO_DIAS em
+// src/lib/ofertas.ts.
 const mostraPreco = oferta.precoValido;
 ---
 
@@ -34,7 +38,12 @@ const mostraPreco = oferta.precoValido;
   O card é HTML puro por cima da cena 3D: o texto fica nítido, o botão fica no
   toque e o leitor de tela lê tudo. A caixa 3D (com a foto) está na cena.
 -->
-<article class="oferta">
+<article
+  class="oferta"
+  data-conferido={oferta.conferidoEm}
+  data-validade={VALIDADE_PRECO_DIAS + 1}
+  data-velho={mostraPreco ? undefined : ''}
+>
   <div class="topo">
     {
       oferta.img && (
@@ -55,22 +64,17 @@ const mostraPreco = oferta.precoValido;
     <div class="info">
       <h2>{oferta.titulo}</h2>
 
-      {
-        mostraPreco ? (
-          <p class="precos">
-            {oferta.precoDe !== undefined && (
-              <span class="de numeros">
-                <span class="sr">Preço cheio:</span>
-                {formatarPreco(oferta.precoDe)}
-              </span>
-            )}
-            <strong class="por numeros">{formatarPreco(oferta.preco)}</strong>
-            {oferta.desconto !== undefined && <span class="desconto numeros">−{oferta.desconto}%</span>}
-          </p>
-        ) : (
-          <p class="sem-preco">O preço muda no Mercado Livre. Veja o de agora.</p>
-        )
-      }
+      <p class="precos">
+        {oferta.precoDe !== undefined && (
+          <span class="de numeros">
+            <span class="sr">Preço cheio:</span>
+            {formatarPreco(oferta.precoDe)}
+          </span>
+        )}
+        <strong class="por numeros">{formatarPreco(oferta.preco)}</strong>
+        {oferta.desconto !== undefined && <span class="desconto numeros">−{oferta.desconto}%</span>}
+      </p>
+      <p class="sem-preco">O preço muda no Mercado Livre. Veja o de agora.</p>
     </div>
   </div>
 
@@ -99,7 +103,8 @@ const mostraPreco = oferta.precoValido;
   <!-- O botão é o único link do card, esticado sobre ele todo: um toque em
        qualquer lugar leva ao anúncio, e o leitor de tela ouve um destino só. -->
   <a class="cta" href={oferta.href} rel="sponsored nofollow noopener">
-    {mostraPreco ? 'Pegar oferta' : 'Ver preço atual'}
+    <span class="rotulo-com">Pegar oferta</span>
+    <span class="rotulo-sem">Ver preço atual</span>
     <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
       <path
         d="M4 10h11M11 5l5 5-5 5"
@@ -111,7 +116,7 @@ const mostraPreco = oferta.precoValido;
     </svg>
   </a>
 
-  {mostraPreco && oferta.conferidoEm && <p class="nota">Preço do ML em {diaMes(oferta.conferidoEm)}. Pode mudar.</p>}
+  {oferta.conferidoEm && <p class="nota">Preço do ML em {diaMes(oferta.conferidoEm)}. Pode mudar.</p>}
 </article>
 
 <style>
@@ -227,6 +232,14 @@ const mostraPreco = oferta.precoValido;
     font-size: 0.6875rem;
     font-weight: 700;
     line-height: 1.5;
+  }
+
+  .oferta:not([data-velho]) .sem-preco,
+  .oferta:not([data-velho]) .rotulo-sem,
+  .oferta[data-velho] .precos,
+  .oferta[data-velho] .rotulo-com,
+  .oferta[data-velho] .nota {
+    display: none;
   }
 
   .sem-preco {

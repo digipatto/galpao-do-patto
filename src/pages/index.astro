@@ -272,6 +272,16 @@ const ofertas = listarOfertas();
 </style>
 
 <script>
+  // Preço velho some sozinho: o build marca as ofertas já velhas, e aqui o
+  // navegador marca as que envelheceram depois do build (sem deploy diário).
+  document.querySelectorAll<HTMLElement>('.oferta[data-conferido]').forEach((el) => {
+    const validade = Number(el.dataset.validade) || 3;
+    const dias = (Date.now() - Date.parse(`${el.dataset.conferido}T00:00:00-03:00`)) / 86_400_000;
+    if (dias >= validade) el.setAttribute('data-velho', '');
+  });
+</script>
+
+<script>
   // A cena 3D é um acabamento: carrega depois da primeira pintura, sob demanda.
   // Sem WebGL, com movimento reduzido, economia de dados ou aparelho fraco, o
   // poster fica e tudo continua funcionando.

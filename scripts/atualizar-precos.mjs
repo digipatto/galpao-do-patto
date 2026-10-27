@@ -11,8 +11,8 @@
  *   - só atualiza se o card for do MESMO anúncio (o id MLB é aprendido na
  *     primeira leitura, cruzando o título, e conferido nas seguintes);
  *   - se a leitura falhar ou o ML bloquear, não mexe em nada. O preço antigo
- *     envelhece e o site esconde o preço sozinho (ver VALIDADE_PRECO_DIAS em
- *     src/lib/ofertas.ts);
+ *     envelhece e o site esconde o preço sozinho no navegador (ver
+ *     VALIDADE_PRECO_DIAS em src/lib/ofertas.ts);
  *   - o preço lido é o de vitrine: sai `condicaoPreco` e `precoAlternativo`,
  *     que eram digitados à mão e não dá pra conferir daqui.
  *
@@ -22,7 +22,6 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const ARQ = fileURLToPath(new URL('../src/data/ofertas.json', import.meta.url));
-const ARQ_RODADA = fileURLToPath(new URL('../src/data/precos-rodada.json', import.meta.url));
 const SECO = process.argv.includes('--dry');
 
 const UA =
@@ -133,11 +132,6 @@ for (const o of ofertas) {
   }
 }
 
-if (!SECO) {
-  if (mudou) writeFileSync(ARQ, JSON.stringify(ofertas, null, 2) + '\n');
-  // Marca a rodada: garante um commit (e um build) por dia mesmo se nada mudar,
-  // pra a regra de "preço velho some" valer.
-  writeFileSync(ARQ_RODADA, JSON.stringify({ rodouEm: hoje }, null, 2) + '\n');
-}
+if (!SECO && mudou) writeFileSync(ARQ, JSON.stringify(ofertas, null, 2) + '\n');
 console.log(mudou ? 'ofertas.json atualizado.' : 'nada mudou em ofertas.json.');
 process.exit(falhas === ofertas.length && ofertas.length > 0 ? 1 : 0);

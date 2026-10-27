@@ -8,7 +8,7 @@ import '../styles/tokens.css';
  * public/cena/poster-retrato.webp e poster-paisagem.webp, o que aparece no
  * lugar da cena 3D enquanto ela carrega, sem WebGL, ou com movimento reduzido.
  *
- * Uso: /cena-poster?w=780&h=1688&foco=0.2   (a caixa mostra o Patto, não um
+ * Uso: /cena-poster?w=780&h=1688&foco=0.2   (a caixa mostra a letra A, não um
  * produto, pra o poster nunca ficar velho quando as ofertas mudarem).
  * Pra regerar: npm run build, servir dist/, abrir com --enable-unsafe-swiftshader.
  */
@@ -52,7 +52,7 @@ import '../styles/tokens.css';
   cv.style.height = `${h}px`;
   import('../cena/galpao').then(({ montar }) =>
     montar(cv, {
-      estacoes: [{ el: null, img: '/marca/patto.webp', letra: 'P' }],
+      estacoes: [{ el: null, letra: 'A' }],
       estatica: true,
       tamanho: { w, h },
       leve: q.get('leve') === '1',

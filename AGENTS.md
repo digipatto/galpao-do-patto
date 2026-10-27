@@ -80,8 +80,8 @@ A página é uma cena WebGL fixa atrás do conteúdo (`.palco`, `position: fixed
   holográfico "Achados & Ofertas", e **um pedestal por oferta** com uma caixa de
   papelão cuja face da frente é a foto do produto (foto de anúncio tem fundo
   branco: vai sobre `--foto-fundo` com multiply, como no card). Mais um pedestal
-  vazio no fim do corredor (sinal de que cresce). O Patto é um billboard 2D ao
-  lado da primeira caixa. Cores lidas dos tokens CSS: nenhum hex no TS. Cor nova
+  vazio no fim do corredor (sinal de que cresce). **O Patto NÃO aparece na cena**
+  (o dono achou demais: ele já está na placa). Cores lidas dos tokens CSS: nenhum hex no TS. Cor nova
   da cena entra como token em `tokens.css` (`--p-holo`).
 - **Rolagem**: cada `<section data-estacao>` é uma estação. A posição de cada uma
   na página move a câmera por um pedestal (data-driven: lê o DOM, nada de
@@ -90,7 +90,7 @@ A página é uma cena WebGL fixa atrás do conteúdo (`.palco`, `position: fixed
 - **Câmera por tela**: retrato abre o campo de visão (58°) e usa `setViewOffset`
   pra subir a caixa na tela (`foco`), porque o card ocupa a metade de baixo.
 - **Poster**: `public/cena/poster-retrato.webp` (780×1688) e `poster-paisagem.webp`
-  (1600×900). A caixa do poster mostra o Patto, não um produto, pra nunca ficar
+  (1600×900). A caixa do poster mostra a letra A, não um produto, pra nunca ficar
   velho. **Regerar quando mudar a cena**: `npm run build`, servir `dist/`, abrir
   `/cena-poster?w=780&h=1688&foco=0.2&leve=1` (retrato) e
   `/cena-poster?w=1600&h=900&foco=0.1` (paisagem) no Edge/Chrome headless com
@@ -173,12 +173,13 @@ do Buds 6 Play.
   (digitados à mão, não dá pra conferir). Não lê Pix nem parcelas.
 - **Falhou ou o ML bloqueou? Não mexe em nada.** `conferidoEm` envelhece e, passados
   `VALIDADE_PRECO_DIAS` (2) dias, o card esconde o preço e o botão vira "Ver preço
-  atual" (`src/lib/ofertas.ts`, campo derivado `precoValido`). Preço velho é pior
-  que preço nenhum.
-- **Roda sozinho**: `.github/workflows/atualizar-precos.yml`, 09h e 21h de Brasília
-  (e à mão na aba Actions). Commita `ofertas.json` e `precos-rodada.json` na main;
-  o Netlify publica. O `precos-rodada.json` muda todo dia de propósito: garante um
-  build diário pra regra do "preço velho some" valer.
+  atual". O HTML leva as duas versões e `data-velho` escolhe (CSS): o build marca
+  as já velhas (`precoValido`) e um script mínimo no `index.astro` marca no
+  navegador as que envelheceram depois do build, então não precisa de deploy diário.
+  Preço velho é pior que preço nenhum.
+- **Roda sozinho**: `.github/workflows/atualizar-precos.yml`, 1x por dia às 09h de
+  Brasília (e à mão na aba Actions). **Só commita quando um preço mudou**: cada
+  commit é um deploy no Netlify e deploy custa crédito/minuto de build.
 - À mão: `node scripts/atualizar-precos.mjs` (`--dry` só mostra, não grava).
 - Se o ML passar a bloquear o IP do GitHub, o job falha (todas as ofertas sem
   leitura), os preços somem em 2 dias e o site segue funcionando "sem preço".

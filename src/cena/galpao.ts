@@ -28,8 +28,6 @@ import {
   PerspectiveCamera,
   PlaneGeometry,
   Scene,
-  Sprite,
-  SpriteMaterial,
   SRGBColorSpace,
   WebGLRenderer,
 } from 'three';
@@ -168,29 +166,6 @@ function texturaSombra() {
   g.fillStyle = grad;
   g.fillRect(0, 0, n, n);
   return new CanvasTexture(c);
-}
-
-/** O Patto como anfitrião: recorte circular com anel âmbar, sempre de frente. */
-async function texturaPatto(anel: Color) {
-  const img = await carregarImagem('/marca/patto.webp');
-  const n = 512;
-  const c = document.createElement('canvas');
-  c.width = n;
-  c.height = n;
-  const g = c.getContext('2d')!;
-  const m = 14;
-  g.beginPath();
-  g.arc(n / 2, n / 2, n / 2 - m, 0, Math.PI * 2);
-  g.save();
-  g.clip();
-  g.drawImage(img, m, m, n - m * 2, n - m * 2);
-  g.restore();
-  g.lineWidth = 12;
-  g.strokeStyle = css(anel);
-  g.stroke();
-  const t = new CanvasTexture(c);
-  t.colorSpace = SRGBColorSpace;
-  return t;
 }
 
 export async function montar(canvas: HTMLCanvasElement, opcoes: Opcoes): Promise<Cena> {
@@ -411,18 +386,6 @@ export async function montar(canvas: HTMLCanvasElement, opcoes: Opcoes): Promise
     }
   }
 
-  // ---------- o Patto, anfitrião: de pé sobre a primeira caixa ----------
-  let patto: Sprite | null = null;
-  try {
-    const texPatto = await texturaPatto(bico);
-    patto = new Sprite(new SpriteMaterial({ map: texPatto, fog: false, toneMapped: false }));
-    patto.scale.set(0.62, 0.62, 1);
-    patto.position.set(-1.1, 1.55, 0.5);
-    scene.add(patto);
-  } catch {
-    /* sem a arte, a cena segue sem anfitrião */
-  }
-
   // ---------- câmera: caminha pelo corredor conforme a página rola ----------
   const foco = opcoes.foco ?? 0.2;
   const pointer = { x: 0, y: 0 };
@@ -580,7 +543,6 @@ export async function montar(canvas: HTMLCanvasElement, opcoes: Opcoes): Promise
       materiaisFoto.forEach((m) => m.dispose());
       texLetreiro.dispose();
       texSombra.dispose();
-      patto?.material.map?.dispose();
       renderer.dispose();
     },
   };
