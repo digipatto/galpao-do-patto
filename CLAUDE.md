@@ -6,14 +6,24 @@
 
 A página do perfil **@achadoseofertas.patto** (Instagram, "Patto | Achados &
 Ofertas"). Uma página só, numa coluna de largura de celular, com a cara de um
-**galpão 3D**: a página inteira é uma cena WebGL minimalista (um corredor com um
-pedestal por oferta; a caixa do pedestal mostra a foto do produto) e rolar a
-página caminha pelo corredor. Texto, preço e links são **HTML por cima da cena**.
-Em cada tela: a placa com a copy da bio (só na primeira), o card da oferta com o
-botão vermelho "Pegar oferta" e, colado no fim da tela, o botão laranja "Ver todas
-as ofertas" (a vitrine geral de afiliado). Conforme ofertas entram em
-`src/data/ofertas.json`, o corredor ganha pedestais sozinho. O preço é lido do ML
-automaticamente (ver "Preço").
+**galpão 3D**: atrás da primeira tela, uma cena WebGL minimalista (um corredor com
+o pedestal do achado mais novo; a caixa mostra a foto do produto). Texto, preço e
+links são **HTML por cima da cena**. Primeira tela: a placa com a copy da bio, o
+card do achado mais novo (destaque) com o botão vermelho "Pegar oferta" e o link
+"Mais N achados". Logo abaixo, a **vitrine** (fundo liso): os outros achados em
+linhas compactas, vários por tela, com abas Recentes / Desconto / Menor preço
+(rádio + `:has`, sem JS; só aparecem com 3+ linhas). Colado no fim da tela, sempre,
+o botão laranja "Ver todas as ofertas" (a vitrine geral de afiliado no ML).
+Conforme ofertas entram em `src/data/ofertas.json`, a vitrine cresce sozinha. O
+preço é lido do ML automaticamente (ver "Preço").
+
+Por que a vitrine (06/11/2026): o dono pediu mais qualidade de navegação com base
+nos sites de oferta que bombam (Pelando, Promobit). Eles mostram muitas ofertas por
+tela, com abas de ordem e sinais de frescor; a versão anterior era uma tela inteira
+por oferta, o que não escala com o enviador publicando produtos sozinho. Sinais de
+frescor, todos reais: selo "Novo" (criada há até `DIAS_NOVA` = 3 dias) e "Preço
+conferido no ML hoje/ontem", corrigidos no navegador (o site só é publicado quando
+algo muda).
 
 - URL: https://achadoseofertaspatto.netlify.app (está na bio do Instagram)
 - Bio do Instagram, que é a copy do site **palavra por palavra** (quem clica na
@@ -106,10 +116,9 @@ A página é uma cena WebGL fixa atrás do conteúdo (`.palco`, `position: fixed
   vazio no fim do corredor (sinal de que cresce). **O Patto NÃO aparece na cena**
   (o dono achou demais: ele já está na placa). Cores lidas dos tokens CSS: nenhum hex no TS. Cor nova
   da cena entra como token em `tokens.css` (`--p-holo`).
-- **Rolagem**: cada `<section data-estacao>` é uma estação. A posição de cada uma
-  na página move a câmera por um pedestal (data-driven: lê o DOM, nada de
-  produto hardcoded). Cada seção tem `min-height: 100svh - barra`, então uma
-  oferta = uma tela, e com uma oferta só a página nem rola.
+- **Rolagem**: cada `<section data-estacao>` é uma estação e move a câmera por um
+  pedestal (data-driven: lê o DOM). Hoje só o destaque é estação (`min-height:
+  100svh - barra`); a vitrine abaixo tem fundo liso e cobre a cena ao rolar.
 - **Câmera por tela**: retrato abre o campo de visão (58°) e usa `setViewOffset`
   pra subir a caixa na tela (`foco`), porque o card ocupa a metade de baixo.
 - **Poster**: `public/cena/poster-retrato.webp` (780×1688) e `poster-paisagem.webp`

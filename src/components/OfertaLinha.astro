@@ -1,0 +1,234 @@
+---
+import type { Oferta } from '../lib/ofertas';
+import { formatarPreco, VALIDADE_PRECO_DIAS, DIAS_NOVA } from '../lib/ofertas';
+
+interface Props {
+  oferta: Oferta;
+  /** Posição da linha em cada ordenação (CSS `order`), calculada na página. */
+  ordem: { recentes: number; desconto: number; preco: number };
+  /** A oferta é recente (o navegador confere de novo: ver index.astro). */
+  nova: boolean;
+}
+
+const { oferta, ordem, nova } = Astro.props;
+
+const selos = [oferta.full && 'Full', oferta.lojaOficial && 'Loja oficial', oferta.freteGratis && 'Frete grátis'].filter(
+  Boolean,
+) as string[];
+---
+
+<!--
+  Uma linha da vitrine: compacta, pra ler vários achados por tela (como os
+  feeds do Pelando e do Promobit). A linha inteira é o link. Mesmas regras do
+  card grande: preço velho some (data-velho), link só via /go.
+-->
+<li
+  class="linha"
+  style={`--o-recentes:${ordem.recentes};--o-desconto:${ordem.desconto};--o-preco:${ordem.preco}`}
+  data-conferido={oferta.conferidoEm}
+  data-validade={VALIDADE_PRECO_DIAS + 1}
+  data-velho={oferta.precoValido ? undefined : ''}
+  data-criado={oferta.criadoEm}
+  data-dias-nova={DIAS_NOVA}
+  data-nova={nova ? '' : undefined}
+>
+  <div class="foto" aria-hidden="true">
+    {
+      oferta.img ? (
+        <img src={oferta.img} alt="" width="72" height="72" loading="lazy" decoding="async" />
+      ) : (
+        <span class="inicial">{oferta.titulo.trim().charAt(0).toUpperCase()}</span>
+      )
+    }
+  </div>
+
+  <div class="corpo">
+    <a class="titulo" href={oferta.href} rel="sponsored nofollow noopener">{oferta.titulo}</a>
+    <p class="precos">
+      {oferta.precoDe !== undefined && <s class="de numeros"><span class="sr">Preço cheio:</span> {formatarPreco(oferta.precoDe)}</s>}
+      <strong class="por numeros">{formatarPreco(oferta.preco)}</strong>
+      {oferta.desconto !== undefined && <span class="desconto numeros">−{oferta.desconto}%</span>}
+    </p>
+    <p class="sem-preco">Ver preço atual no Mercado Livre</p>
+    {
+      (selos.length > 0 || nova) && (
+        <ul class="selos">
+          <li class="novo">Novo</li>
+          {selos.map((s) => <li>{s}</li>)}
+        </ul>
+      )
+    }
+  </div>
+
+  <svg class="seta" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+    <path d="M8 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+  </svg>
+</li>
+
+<style>
+  .linha {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--e-3);
+    padding: var(--e-3);
+    border-radius: var(--raio);
+    background: var(--superficie);
+    transition: background-color 0.15s;
+  }
+
+  .linha:hover {
+    background: var(--superficie-alta);
+  }
+
+  .linha:active {
+    transform: scale(0.995);
+  }
+
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Foto de anúncio: fundo branco + produto escuro. Tom claro com multiply. */
+  .foto {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    overflow: hidden;
+    border-radius: var(--raio-sm);
+    background: var(--foto-fundo);
+  }
+
+  .foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 0.3rem;
+    mix-blend-mode: multiply;
+  }
+
+  .inicial {
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: 1.75rem;
+    color: var(--foto-tinta);
+  }
+
+  .corpo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .titulo {
+    font-weight: 700;
+    font-size: 0.9375rem;
+    line-height: 1.3;
+    color: var(--texto);
+    text-decoration: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* A linha inteira é clicável; o leitor de tela ouve um link só. */
+  .titulo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--raio);
+  }
+
+  .precos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--e-2);
+    margin: 0;
+  }
+
+  .de {
+    font-size: 0.75rem;
+    color: var(--texto-tenue);
+  }
+
+  .por {
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: 1.125rem;
+    letter-spacing: -0.01em;
+    word-spacing: 0.12em;
+  }
+
+  .desconto {
+    align-self: center;
+    padding: 0.05rem 0.4rem;
+    border-radius: 999px;
+    background: var(--cta);
+    color: var(--cta-texto);
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+
+  .sem-preco {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--texto-suave);
+  }
+
+  .linha:not([data-velho]) .sem-preco,
+  .linha[data-velho] .precos {
+    display: none;
+  }
+
+  .selos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--e-1);
+    margin: 0.1rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.6875rem;
+    font-weight: 600;
+  }
+
+  .selos li {
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--marca) 14%, transparent);
+    color: var(--marca);
+  }
+
+  .selos .novo {
+    background: color-mix(in srgb, var(--acerto) 16%, transparent);
+    color: var(--acerto);
+  }
+
+  .linha:not([data-nova]) .novo {
+    display: none;
+  }
+
+  .seta {
+    flex: 0 0 auto;
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--texto-tenue);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .linha:hover .seta {
+    transform: translateX(3px);
+    color: var(--marca);
+  }
+</style>

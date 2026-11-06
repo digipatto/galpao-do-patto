@@ -16,6 +16,9 @@ import { esquemaOferta, type OfertaBruta } from './schema';
  */
 export const VALIDADE_PRECO_DIAS = 2;
 
+/** Oferta publicada há até isso ganha o selo "Novo" (o navegador confere de novo). */
+export const DIAS_NOVA = 3;
+
 export type Oferta = OfertaBruta & {
   /** O preço foi conferido recentemente e pode ser mostrado. */
   precoValido: boolean;
@@ -89,6 +92,11 @@ function derivar(oferta: OfertaBruta): Oferta {
       : undefined;
 
   return { ...oferta, precoValido, desconto, economia, href: `/go/${oferta.id}` };
+}
+
+/** A oferta entrou no site há até DIAS_NOVA dias. */
+export function ehNova(oferta: { criadoEm: string }): boolean {
+  return diasEntre(oferta.criadoEm, hojeBR()) <= DIAS_NOVA;
 }
 
 /** Todas as ofertas, da mais nova pra mais antiga. */

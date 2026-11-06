@@ -1,14 +1,16 @@
 ---
 import type { Oferta } from '../lib/ofertas';
-import { formatarPreco, VALIDADE_PRECO_DIAS } from '../lib/ofertas';
+import { formatarPreco, VALIDADE_PRECO_DIAS, DIAS_NOVA } from '../lib/ofertas';
 
 interface Props {
   oferta: Oferta;
   /** A primeira oferta está na primeira tela: carrega já, sem lazy. */
   prioridade?: boolean;
+  /** Publicada há poucos dias: ganha o selo "Novo". */
+  nova?: boolean;
 }
 
-const { oferta, prioridade = false } = Astro.props;
+const { oferta, prioridade = false, nova = false } = Astro.props;
 
 // "2026-10-24" -> "24/10". Quebra a string em vez de usar Date: new Date() de
 // uma data sem horário vira meia-noite UTC e, no fuso do Brasil, cai no dia
@@ -43,6 +45,9 @@ const mostraPreco = oferta.precoValido;
   data-conferido={oferta.conferidoEm}
   data-validade={VALIDADE_PRECO_DIAS + 1}
   data-velho={mostraPreco ? undefined : ''}
+  data-criado={oferta.criadoEm}
+  data-dias-nova={DIAS_NOVA}
+  data-nova={nova ? '' : undefined}
 >
   <div class="topo">
     {
@@ -79,8 +84,9 @@ const mostraPreco = oferta.precoValido;
   </div>
 
   {
-    (selos.length > 0 || oferta.avaliacao !== undefined) && (
+    (selos.length > 0 || oferta.avaliacao !== undefined || nova) && (
       <ul class="fatos">
+        <li class="selo novo">Novo</li>
         {oferta.avaliacao !== undefined && (
           <li>
             <svg class="estrela" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
@@ -116,7 +122,13 @@ const mostraPreco = oferta.precoValido;
     </svg>
   </a>
 
-  {oferta.conferidoEm && <p class="nota">Preço do ML em {diaMes(oferta.conferidoEm)}. Pode mudar.</p>}
+  {
+    oferta.conferidoEm && (
+      <p class="nota">
+        Preço conferido no ML <span data-quando={oferta.conferidoEm}>em {diaMes(oferta.conferidoEm)}</span>. Pode mudar.
+      </p>
+    )
+  }
 </article>
 
 <style>
@@ -273,6 +285,15 @@ const mostraPreco = oferta.precoValido;
     background: color-mix(in srgb, var(--marca) 14%, transparent);
     color: var(--marca);
     font-weight: 600;
+  }
+
+  .fatos .novo {
+    background: color-mix(in srgb, var(--acerto) 16%, transparent);
+    color: var(--acerto);
+  }
+
+  .oferta:not([data-nova]) .novo {
+    display: none;
   }
 
   .estrela {

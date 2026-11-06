@@ -1,13 +1,29 @@
 ---
 import Base from '../layouts/Base.astro';
 import Oferta from '../components/Oferta.astro';
-import { listarOfertas } from '../lib/ofertas';
+import OfertaLinha from '../components/OfertaLinha.astro';
+import { listarOfertas, DIAS_NOVA, ehNova } from '../lib/ofertas';
 
 // Dado inválido estoura aqui e o build para, de propósito.
 const ofertas = listarOfertas();
 
 // A placa (h1 + subtítulo) é a bio do Instagram, palavra por palavra: quem clica
 // na bio tem que reconhecer a promessa ao chegar.
+
+// A mais nova é o destaque da primeira tela (sobre a cena 3D). As outras vão pra
+// vitrine logo abaixo: várias por tela, como nos feeds de oferta (Pelando,
+// Promobit), em vez de uma tela inteira por produto.
+const [destaque, ...demais] = ofertas;
+
+// Ordenação sem JavaScript: cada linha leva a sua posição em cada ordem (CSS
+// `order`), e o rádio marcado escolhe qual vale (`:has`).
+const posicao = (lista: typeof demais) => new Map(lista.map((o, i) => [o.id, i]));
+const porRecentes = posicao(demais);
+const porDesconto = posicao(
+  [...demais].sort((a, b) => (b.desconto ?? -1) - (a.desconto ?? -1) || b.criadoEm.localeCompare(a.criadoEm)),
+);
+const porPreco = posicao([...demais].sort((a, b) => a.preco - b.preco));
+const mostraOrdem = demais.length >= 3;
 ---
 
 <Base
@@ -24,7 +40,7 @@ const ofertas = listarOfertas();
   <div class="conteudo">
     <div class="coluna">
       {
-        ofertas.length === 0 ? (
+        !destaque ? (
           <section class="estacao" data-estacao>
             <header class="placa">
               <div class="avatar">
@@ -37,33 +53,65 @@ const ofertas = listarOfertas();
             </header>
           </section>
         ) : (
-          ofertas.map((oferta, i) => (
-            <section class="estacao" data-estacao data-img={oferta.img} data-letra={oferta.titulo.trim().charAt(0).toUpperCase()}>
-              {i === 0 && (
-                <header class="placa">
-                  <div class="avatar">
-                    <img src="/marca/patto.webp" alt="Patto, o pato de terno" width="56" height="56" />
-                  </div>
-                  <div class="placa-texto">
-                    <h1>Sou o Patto, seu garimpeiro oficial</h1>
-                    <p class="sub">Achados reais do Mercado Livre</p>
-                    <p class="aviso">Links de afiliado. Mesmo preço do anúncio.</p>
-                  </div>
-                </header>
-              )}
-              <Oferta oferta={oferta} prioridade={i === 0} />
-              {i < ofertas.length - 1 && (
-                <span class="desce" aria-hidden="true">
-                  <svg viewBox="0 0 20 20" focusable="false">
-                    <path d="M5 8l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                </span>
-              )}
-            </section>
-          ))
+          <section class="estacao" data-estacao data-img={destaque.img} data-letra={destaque.titulo.trim().charAt(0).toUpperCase()}>
+            <header class="placa">
+              <div class="avatar">
+                <img src="/marca/patto.webp" alt="Patto, o pato de terno" width="56" height="56" />
+              </div>
+              <div class="placa-texto">
+                <h1>Sou o Patto, seu garimpeiro oficial</h1>
+                <p class="sub">Achados reais do Mercado Livre</p>
+                <p class="aviso">Links de afiliado. Mesmo preço do anúncio.</p>
+              </div>
+            </header>
+            <Oferta oferta={destaque} prioridade nova={ehNova(destaque)} />
+            {demais.length > 0 && (
+              <a class="desce" href="#vitrine">
+                Mais {demais.length} {demais.length === 1 ? 'achado' : 'achados'}
+                <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                  <path d="M5 8l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </a>
+            )}
+          </section>
         )
       }
     </div>
+
+    {
+      demais.length > 0 && (
+        <section id="vitrine" class="vitrine" aria-labelledby="vitrine-titulo">
+          <div class="coluna">
+            <div class="vitrine-topo">
+              <h2 id="vitrine-titulo">Mais achados</h2>
+              <p class="conta numeros">{demais.length}</p>
+            </div>
+
+            {mostraOrdem && (
+              <fieldset class="ordem">
+                <legend class="sr">Ordenar por</legend>
+                <input type="radio" name="ordem" id="ord-recentes" value="recentes" checked />
+                <label for="ord-recentes">Recentes</label>
+                <input type="radio" name="ordem" id="ord-desconto" value="desconto" />
+                <label for="ord-desconto">Desconto</label>
+                <input type="radio" name="ordem" id="ord-preco" value="preco" />
+                <label for="ord-preco">Menor preço</label>
+              </fieldset>
+            )}
+
+            <ul class="linhas" role="list">
+              {demais.map((o) => (
+                <OfertaLinha
+                  oferta={o}
+                  nova={ehNova(o)}
+                  ordem={{ recentes: porRecentes.get(o.id)!, desconto: porDesconto.get(o.id)!, preco: porPreco.get(o.id)! }}
+                />
+              ))}
+            </ul>
+          </div>
+        </section>
+      )
+    }
 
     <!-- Barra do "ver tudo": colada no fim da tela enquanto a página rola, e logo
          abaixo da última oferta quando a lista termina. Laranja de propósito: o
@@ -138,17 +186,143 @@ const ofertas = listarOfertas();
     padding: var(--e-3) 0;
   }
 
+  /* "Mais N achados": leva à vitrine. Discreto: o botão da tela é o do card. */
   .desce {
     align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
     margin-bottom: -0.25rem;
-    color: var(--texto-tenue);
-    opacity: 0.8;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--texto-suave);
+    text-decoration: none;
+  }
+
+  .desce:hover {
+    color: var(--marca);
   }
 
   .desce svg {
     display: block;
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* ---------- vitrine: os outros achados, vários por tela ---------- */
+
+  /* Fundo liso por cima da cena: a lista lê como uma prateleira, não como
+     cards soltos sobre o 3D. */
+  .vitrine {
+    position: relative;
+    z-index: 1;
+    scroll-margin-top: var(--e-4);
+    padding: var(--e-8) 0 var(--e-6);
+    background: var(--fundo);
+    border-top: 1px solid var(--borda);
+  }
+
+  .vitrine-topo {
+    display: flex;
+    align-items: baseline;
+    gap: var(--e-2);
+    margin-bottom: var(--e-4);
+  }
+
+  h2 {
+    margin: 0;
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: 1.375rem;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    word-spacing: 0.1em;
+  }
+
+  .conta {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--texto-tenue);
+  }
+
+  /* Abas de ordem (rádio + :has, sem JavaScript). */
+  .ordem {
+    /* fieldset não encolhe por padrão (min-content): estourava a largura em 320px */
+    min-inline-size: 0;
+    display: flex;
+    gap: var(--e-1);
+    margin: 0 0 var(--e-4);
+    padding: 0.2rem;
+    border: 1px solid var(--borda);
+    border-radius: 999px;
+    background: var(--fundo-elevado);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ordem input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ordem label {
+    flex: 1 0 auto;
+    min-height: 2.5rem;
+    display: grid;
+    place-items: center;
+    padding: 0 var(--e-3);
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--texto-suave);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+
+  .ordem label:hover {
+    color: var(--texto);
+  }
+
+  .ordem input:checked + label {
+    background: var(--superficie-alta);
+    color: var(--texto);
+  }
+
+  .ordem input:focus-visible + label {
+    outline: 2px solid var(--marca);
+    outline-offset: 2px;
+  }
+
+  .linhas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .linhas :global(.linha) {
+    order: var(--o-recentes);
+  }
+  .vitrine:has(#ord-desconto:checked) .linhas :global(.linha) {
+    order: var(--o-desconto);
+  }
+  .vitrine:has(#ord-preco:checked) .linhas :global(.linha) {
+    order: var(--o-preco);
   }
 
   /* ---------- placa (nome e promessa) ---------- */
@@ -272,12 +446,23 @@ const ofertas = listarOfertas();
 </style>
 
 <script>
-  // Preço velho some sozinho: o build marca as ofertas já velhas, e aqui o
-  // navegador marca as que envelheceram depois do build (sem deploy diário).
-  document.querySelectorAll<HTMLElement>('.oferta[data-conferido]').forEach((el) => {
-    const validade = Number(el.dataset.validade) || 3;
-    const dias = (Date.now() - Date.parse(`${el.dataset.conferido}T00:00:00-03:00`)) / 86_400_000;
-    if (dias >= validade) el.setAttribute('data-velho', '');
+  // O site só é publicado quando algo muda, então "hoje" no build envelhece.
+  // Aqui o navegador corrige com a data de agora (fuso do Brasil):
+  //  - preço velho some (data-velho);
+  //  - o selo "Novo" sai das ofertas que deixaram de ser novas;
+  //  - "em 06/11" vira "hoje" ou "ontem" quando for o caso.
+  const hoje = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+  const dias = (iso: string) => Math.round((Date.parse(`${hoje}T00:00:00Z`) - Date.parse(`${iso}T00:00:00Z`)) / 86_400_000);
+  document.querySelectorAll<HTMLElement>('[data-conferido]').forEach((el) => {
+    if (dias(el.dataset.conferido!) >= (Number(el.dataset.validade) || 3)) el.setAttribute('data-velho', '');
+  });
+  document.querySelectorAll<HTMLElement>('[data-nova]').forEach((el) => {
+    if (dias(el.dataset.criado!) > (Number(el.dataset.diasNova) || 3)) el.removeAttribute('data-nova');
+  });
+  document.querySelectorAll<HTMLElement>('[data-quando]').forEach((el) => {
+    const d = dias(el.dataset.quando!);
+    if (d === 0) el.textContent = 'hoje';
+    else if (d === 1) el.textContent = 'ontem';
   });
 </script>
 
