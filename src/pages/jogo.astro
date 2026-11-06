@@ -1,0 +1,219 @@
+---
+import Base from '../layouts/Base.astro';
+import Oferta from '../components/Oferta.astro';
+import { listarOfertas } from '../lib/ofertas';
+import { listarQuizzes } from '../lib/quizzes';
+
+const ofertas = listarOfertas();
+const quizPorOferta = new Map<string, string>();
+// o mais novo de cada oferta vence (listarQuizzes já vem do mais novo pro mais antigo)
+for (const q of listarQuizzes()) if (!quizPorOferta.has(q.ofertaId)) quizPorOferta.set(q.ofertaId, q.id);
+
+// O que o jogo precisa saber. Link de afiliado não vai aqui: o botão do card
+// já aponta pra /go/<id>.
+const dados = ofertas.map((o) => ({
+  id: o.id,
+  titulo: o.titulo,
+  img: o.img,
+  quiz: quizPorOferta.get(o.id),
+}));
+---
+
+<Base
+  titulo="Garimpo no corredor — Achados & Ofertas"
+  descricao="Caminhe pelo corredor do meu galpão e abra as caixas: cada uma esconde um achado do Mercado Livre."
+>
+  <div class="jogo">
+    <header class="topo">
+      <a class="volta" href="/">Galpão</a>
+      <h1>Garimpo no corredor</h1>
+      <p class="placar" aria-live="polite">
+        <span id="abertas">0</span>/{ofertas.length} abertas
+      </p>
+    </header>
+
+    {
+      ofertas.length === 0 ? (
+        <p class="vazio">O corredor está vazio. Volta daqui a pouco: o Patto está garimpando.</p>
+      ) : (
+        <>
+          <div class="palco">
+            <canvas id="corredor" tabindex="0" role="img" aria-label="Corredor do galpão com caixas fechadas" />
+            <div class="passos">
+              <button type="button" id="ant">Voltar</button>
+              <button type="button" id="prox">Seguir em frente</button>
+            </div>
+          </div>
+
+          <section class="painel">
+            <p id="dica" class="dica">Deslize pra cima pra caminhar. Toque na caixa pra abrir.</p>
+            <div class="lista">
+              {ofertas.map((o, i) => (
+                <div data-id={o.id}>
+                  <Oferta oferta={o} prioridade={i === 0} />
+                  {quizPorOferta.has(o.id) && (
+                    <p class="quiz-link">
+                      <a href={`/quiz/${quizPorOferta.get(o.id)}`}>Tem quiz dessa história: teste se você sabe</a>
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p id="fim" class="fim" hidden>
+              Você abriu o corredor inteiro. <a href="/go/todas" rel="sponsored nofollow noopener">Ver todas as ofertas</a>
+            </p>
+            <p class="aviso">Links de afiliado. Mesmo preço do anúncio.</p>
+          </section>
+
+          <script type="application/json" id="dados" set:html={JSON.stringify(dados)} />
+        </>
+      )
+    }
+  </div>
+</Base>
+
+<script>
+  import '../jogo/corredor.ts';
+</script>
+
+<style>
+  .jogo {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    background: var(--fundo);
+  }
+
+  .topo {
+    display: flex;
+    align-items: baseline;
+    gap: var(--e-3);
+    padding: var(--e-3) var(--gutter);
+  }
+  h1 {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    word-spacing: 0.12em;
+  }
+  .volta {
+    font-size: 0.875rem;
+    color: var(--texto-suave);
+  }
+  .volta:hover {
+    color: var(--marca);
+  }
+  .placar {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--marca);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .vazio {
+    margin: var(--e-12) var(--gutter);
+    text-align: center;
+    color: var(--texto-suave);
+  }
+
+  /* Sem JavaScript o jogo não existe: fica só a lista de cards. */
+  .palco {
+    display: none;
+  }
+  :global(html.js) .palco {
+    position: relative;
+    display: block;
+    flex: 1 1 22rem;
+    min-height: 20rem;
+  }
+  canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+    cursor: grab;
+    border-radius: var(--raio-sm);
+  }
+
+  .passos {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--e-3);
+    display: flex;
+    justify-content: center;
+    gap: var(--e-2);
+    pointer-events: none;
+  }
+  .passos button {
+    pointer-events: auto;
+    min-height: 2.75rem;
+    padding: 0 var(--e-4);
+    border: 1px solid var(--borda-forte);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--superficie) 90%, transparent);
+    color: var(--texto);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .passos button:hover:not(:disabled) {
+    border-color: var(--marca);
+  }
+  .passos button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .painel {
+    padding: var(--e-3) var(--gutter) var(--e-6);
+    width: min(100%, 34rem);
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-2);
+  }
+  .dica {
+    margin: 0;
+    text-align: center;
+    color: var(--texto-suave);
+    font-size: 0.9375rem;
+  }
+  .lista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-3);
+  }
+  .quiz-link {
+    margin: var(--e-2) 0 0;
+    text-align: center;
+    font-size: 0.875rem;
+  }
+  .quiz-link a {
+    color: var(--marca);
+  }
+  .fim {
+    margin: 0;
+    text-align: center;
+    font-weight: 700;
+  }
+  .fim a {
+    color: var(--marca);
+  }
+  .aviso {
+    margin: 0;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--texto-tenue);
+  }
+</style>

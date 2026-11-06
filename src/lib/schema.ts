@@ -85,3 +85,33 @@ export const esquemaOferta = z
   });
 
 export type OfertaBruta = z.infer<typeof esquemaOferta>;
+
+/**
+ * Um quiz de vídeo: o Reel faz a pergunta, a pessoa comenta a letra e a DM
+ * leva ao /quiz/<id>?r=<letra>, que diz se acertou e mostra a oferta.
+ *
+ * `opcoes` são só os textos; a letra é a posição (A, B, C, D). A resposta certa
+ * NUNCA vai pro HTML da pergunta: só a página de resultado (no servidor) lê.
+ */
+const letra = z.enum(['A', 'B', 'C', 'D']);
+
+export const esquemaQuiz = z
+  .object({
+    /** Slug único. Vira o endereço /quiz/<id>. */
+    id: z.string().min(2).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'use minúsculas, números e hífens'),
+    /** Oferta que aparece depois da resposta (id em ofertas.json). */
+    ofertaId: z.string().min(2),
+    pergunta: z.string().min(5).max(200),
+    opcoes: z.array(z.string().min(1).max(80)).min(2).max(4),
+    correta: letra,
+    /** A história por trás da resposta. Só fatos que o dono confirmou. */
+    revelacao: z.string().min(3).max(500),
+    criadoEm: data,
+  })
+  .refine((q) => 'ABCD'.indexOf(q.correta) < q.opcoes.length, {
+    message: 'correta aponta pra uma letra que não existe em opcoes',
+    path: ['correta'],
+  });
+
+export type QuizBruto = z.infer<typeof esquemaQuiz>;
+export type LetraQuiz = z.infer<typeof letra>;

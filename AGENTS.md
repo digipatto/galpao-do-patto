@@ -32,7 +32,7 @@ automaticamente (ver "Preço").
    o link `mercadolivre.com/sec/...` que lista todos os produtos do dono);
    `/go/<id>` leva ao link de uma oferta. `todas` é id reservado.
 3. **Dado inválido derruba o build** (Zod), com mensagem apontando o campo.
-4. **O único JS é a cena 3D, e ela é opcional.** `three` puro (~130 KB gzip),
+4. **O JS da home é só a cena 3D, e ela é opcional.** (O `/jogo` tem o seu próprio script, `src/jogo/corredor.ts`, e `/quiz/<id>` não tem JS: ver "Jogo e quiz".) `three` puro (~130 KB gzip),
    carregado depois da primeira pintura (`src/cena/galpao.ts`), sem React, sem
    GSAP, sem framework. A página inteira funciona sem ele: o poster
    (`public/cena/poster-*.webp`) fica no lugar da cena sem WebGL, com
@@ -69,6 +69,30 @@ automaticamente (ver "Preço").
     `.claude/skills/impeccable/scripts/impeccable detect --json <arquivos>`.
     Proibido: kicker acima de heading, grade de cards iguais como estrutura de
     página, gradiente em texto, sombra sem deslocamento.
+
+## Jogo e quiz (interação com quem segue e comenta)
+
+- **`/quiz/<id>`** (SSR, como o `/go`): sem `?r=` mostra a pergunta com as letras como
+  links; com `?r=B` mostra "Acertou!"/"Quase!", a história (`revelacao`) e o card da
+  oferta. **A resposta certa nunca vai no HTML da pergunta** (a página lê no servidor).
+  Fluxo do Reel: o vídeo faz a pergunta, a pessoa comenta a letra, o enviador
+  (`VideosPAttoAchados/enviador-links`) manda por DM o link `/quiz/<id>?r=<letra>`.
+  Formato em `src/data/quizzes.json`: `id`, `ofertaId` (tem que existir em
+  `ofertas.json`), `pergunta`, `opcoes` (2 a 4 textos; a letra é a posição), `correta`,
+  `revelacao` (só fatos que o dono confirmou), `criadoEm`.
+- **`/jogo`** ("Garimpo no corredor"): corredor em perspectiva (canvas 2D), uma caixa
+  fechada por oferta; deslizar/rolar/setas caminham, tocar na caixa abre (a foto sobe e o
+  card com o botão aparece embaixo). O placar de caixas abertas fica no aparelho
+  (`localStorage`), sem servidor nem ranking. Sem JS vira só a lista de cards. Caixa com
+  fita vermelha = a oferta tem quiz. Cores vêm dos tokens (`--p-papelao*` etc.).
+- **Crescimento automático:** o enviador, ao salvar uma automação com "colocar no site"
+  (ou quiz), commita a oferta em `ofertas.json` (título, `linkAfiliado`, `preco: 1`
+  provisório, `criadoEm`) e o quiz em `quizzes.json`, via API do GitHub. O workflow
+  `atualizar-precos.yml` também roda quando o `ofertas.json` muda: lê o preço e, se a
+  oferta não tem `img`, **baixa a foto do card do anúncio** pra `public/produtos/<id>.<ext>`
+  (só quando `img` está vazio; foto posta à mão nunca é trocada). O preço provisório não
+  aparece (sem `conferidoEm` o card mostra "Ver preço atual"). Conferir a foto depois: o
+  robô casa o título digitado com o card do anúncio.
 
 ## O galpão 3D (visual)
 
@@ -112,6 +136,11 @@ src/
   layouts/Base.astro       <head>, OG, rodapé com aviso de afiliado
   pages/index.astro        palco (poster + canvas) + placa + estações + barra "ver todas"
   pages/go/[id].ts         302 pra vitrine (/go/todas) ou oferta (roda no servidor)
+  pages/jogo.astro         jogo "Garimpo no corredor" (canvas 2D) + lista de cards
+  jogo/corredor.ts         o jogo (sem biblioteca; só desenha enquanto algo se move)
+  pages/quiz/[id].astro    pergunta e resultado do quiz (roda no servidor, 0 KB de JS)
+  data/quizzes.json        quizzes (começa vazio: []); o enviador escreve aqui
+  lib/quizzes.ts           carrega e valida os quizzes (oferta inexistente derruba o build)
   pages/og.astro           gerador da imagem de compartilhamento (noindex)
   pages/cena-poster.astro  gerador dos posters da cena (noindex)
 scripts/atualizar-precos.mjs  lê o preço de cada oferta no ML (roda no GitHub Actions)

@@ -1,0 +1,260 @@
+---
+import Base from '../../layouts/Base.astro';
+import Oferta from '../../components/Oferta.astro';
+import { acharOferta } from '../../lib/ofertas';
+import { acharQuiz, lerLetra, LETRAS } from '../../lib/quizzes';
+
+/**
+ * /quiz/<id>            a pergunta, com as letras como links
+ * /quiz/<id>?r=B        o resultado: acertou ou não, a história e a oferta
+ *
+ * Roda no servidor (como o /go): a resposta certa nunca vai no HTML da
+ * pergunta, e a página não precisa de JavaScript nenhum.
+ */
+export const prerender = false;
+
+const quiz = Astro.params.id ? acharQuiz(Astro.params.id) : undefined;
+if (!quiz) return Astro.redirect('/', 302);
+
+const oferta = acharOferta(quiz.ofertaId)!;
+const resposta = lerLetra(Astro.url.searchParams.get('r'), quiz);
+const acertou = resposta === quiz.correta;
+const opcoes = quiz.opcoes.map((texto, i) => ({ letra: LETRAS[i], texto }));
+
+const titulo = resposta
+  ? `${acertou ? 'Você acertou' : 'Quase'} — Quiz do Patto`
+  : `${quiz.pergunta} — Quiz do Patto`;
+---
+
+<Base
+  titulo={titulo}
+  descricao="Quiz do Patto: eu conto a história, você chuta, e eu mostro o achado."
+  semIndice={resposta !== undefined}
+>
+  <div class="pagina">
+    <div class="coluna">
+      <header class="topo">
+        <img src="/marca/patto.webp" alt="" width="40" height="40" />
+        <span>Quiz do Patto</span>
+      </header>
+
+      {
+        resposta ? (
+          <section aria-labelledby="veredito" class={`resultado ${acertou ? 'certo' : 'errado'}`}>
+            <h1 id="veredito">{acertou ? 'Acertou!' : 'Quase!'}</h1>
+            <p class="pergunta">{quiz.pergunta}</p>
+          </section>
+        ) : (
+          <h1 class="pergunta-h">{quiz.pergunta}</h1>
+        )
+      }
+
+      <ol class="opcoes">
+        {
+          opcoes.map(({ letra, texto }) => {
+            const certa = resposta !== undefined && letra === quiz.correta;
+            const sua = resposta === letra;
+            const estado = certa ? 'certa' : sua ? 'errada' : '';
+            const conteudo = (
+              <>
+                <span class="letra" aria-hidden="true">{letra}</span>
+                <span class="texto">{texto}</span>
+                {certa && <span class="marca">Resposta certa</span>}
+                {sua && !certa && <span class="marca">Sua resposta</span>}
+              </>
+            );
+            return (
+              <li class={estado}>
+                {resposta ? (
+                  <div class="item">{conteudo}</div>
+                ) : (
+                  <a class="item" href={`/quiz/${quiz.id}?r=${letra}`} rel="nofollow">
+                    {conteudo}
+                  </a>
+                )}
+              </li>
+            );
+          })
+        }
+      </ol>
+
+      {
+        resposta ? (
+          <>
+            <p class="revelacao">{quiz.revelacao}</p>
+            <div class="achado">
+              <p class="achado-rotulo">O achado dessa história</p>
+              <Oferta oferta={oferta} prioridade />
+            </div>
+            <p class="outros">
+              <a href="/jogo">Garimpar mais no corredor</a>
+            </p>
+          </>
+        ) : (
+          <p class="dica">Toque na letra que você acha certa. O resultado vem na hora.</p>
+        )
+      }
+    </div>
+  </div>
+</Base>
+
+<style>
+  .pagina {
+    min-height: 100svh;
+    padding: var(--e-6) 0 var(--e-12);
+    background: var(--fundo);
+  }
+
+  .coluna {
+    width: min(100% - calc(var(--gutter) * 2), 34rem);
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-6);
+  }
+
+  .topo {
+    display: flex;
+    align-items: center;
+    gap: var(--e-3);
+    font-weight: 700;
+    color: var(--texto-suave);
+  }
+  .topo img {
+    border-radius: 50%;
+    background: var(--superficie);
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    word-spacing: 0.12em;
+    text-wrap: balance;
+  }
+  .pergunta-h {
+    font-size: clamp(1.625rem, 6.5vw, 2.25rem);
+  }
+  .resultado h1 {
+    font-size: clamp(2.5rem, 12vw, 3.75rem);
+  }
+  .resultado.certo h1 {
+    color: var(--acerto);
+  }
+  .resultado.errado h1 {
+    color: var(--marca);
+  }
+  .pergunta {
+    margin: var(--e-2) 0 0;
+    color: var(--texto-suave);
+    text-wrap: pretty;
+  }
+
+  .opcoes {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: var(--e-3);
+    min-height: 3.5rem;
+    padding: var(--e-3) var(--e-4);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    background: var(--superficie);
+    color: var(--texto);
+    text-decoration: none;
+    transition:
+      transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.15s;
+  }
+  a.item:hover {
+    border-color: var(--marca);
+    transform: translateY(-2px);
+  }
+  a.item:active {
+    transform: scale(0.99);
+  }
+
+  .letra {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--raio-sm);
+    background: var(--superficie-alta);
+    font-family: var(--fonte-display);
+    font-weight: 700;
+  }
+  .texto {
+    flex: 1;
+    min-width: 0;
+    font-weight: 500;
+    text-wrap: pretty;
+  }
+  .marca {
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--texto-suave);
+  }
+
+  li.certa .item {
+    border-color: var(--acerto);
+  }
+  li.certa .letra {
+    background: var(--acerto);
+    color: var(--marca-texto);
+  }
+  li.certa .marca {
+    color: var(--acerto);
+  }
+  li.errada .item {
+    border-color: var(--erro);
+  }
+  li.errada .marca {
+    color: var(--erro);
+  }
+
+  .revelacao {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    max-width: 65ch;
+    text-wrap: pretty;
+  }
+
+  .achado {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-3);
+  }
+  .achado-rotulo {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--texto-suave);
+  }
+
+  .dica,
+  .outros {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--texto-tenue);
+  }
+  .outros a {
+    color: var(--texto-suave);
+  }
+  .outros a:hover {
+    color: var(--marca);
+  }
+</style>

@@ -18,10 +18,11 @@
  *
  * Uso: node scripts/atualizar-precos.mjs [--dry]
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const ARQ = fileURLToPath(new URL('../src/data/ofertas.json', import.meta.url));
+const PASTA_FOTOS = fileURLToPath(new URL('../public/produtos/', import.meta.url));
 const SECO = process.argv.includes('--dry');
 
 const UA =
@@ -59,9 +60,11 @@ function lerCards(html) {
     const mlb = p.match(/item_id%3A(MLB\d+)/)?.[1] ?? p.match(/[?&]wid=(MLB\d+)/)?.[1];
     const antes = p.match(/aria-label="(Antes:[^"]+)"/)?.[1];
     const agora = p.match(/aria-label="(Agora:[^"]+)"/)?.[1];
+    const foto = p.match(/class="poly-component__picture"[^>]*\ssrc="(https:\/\/[^"]+)"/)?.[1];
     return {
       titulo,
       mlb,
+      foto,
       precoDe: antes ? lerValor(antes) : undefined,
       preco: agora ? lerValor(agora) : undefined,
     };
@@ -75,6 +78,27 @@ function mesmoProduto(tituloOferta, tituloCard) {
   let comuns = 0;
   for (const p of a) if (b.has(p)) comuns++;
   return comuns / a.size >= 0.6;
+}
+
+/**
+ * Oferta nova sem foto (criada pelo enviador, que só sabe título e link): baixa
+ * a foto do card que acabou de ser identificado como o MESMO anúncio, pra
+ * public/produtos/<id>.<ext>. Só roda quando `img` está vazio; foto posta à mão
+ * nunca é trocada. Falhou? Segue sem foto (a cena mostra a inicial do título).
+ */
+async function baixarFoto(oferta, url) {
+  const r = await fetch(url, { headers: { 'user-agent': UA } });
+  if (!r.ok) throw new Error(`foto HTTP ${r.status}`);
+  const tipo = r.headers.get('content-type') ?? '';
+  const ext = tipo.includes('webp') ? 'webp' : tipo.includes('png') ? 'png' : tipo.includes('jpeg') ? 'jpg' : null;
+  if (!ext) throw new Error(`foto com tipo estranho (${tipo})`);
+  const bytes = Buffer.from(await r.arrayBuffer());
+  if (bytes.length < 2_000 || bytes.length > 1_500_000) throw new Error(`foto com tamanho estranho (${bytes.length} bytes)`);
+  if (!SECO) {
+    mkdirSync(PASTA_FOTOS, { recursive: true });
+    writeFileSync(`${PASTA_FOTOS}${oferta.id}.${ext}`, bytes);
+  }
+  return `/produtos/${oferta.id}.${ext}`;
 }
 
 async function lerVitrine(link) {
@@ -114,6 +138,14 @@ for (const o of ofertas) {
     }
 
     const novo = { ...o, mlb: card.mlb, preco: card.preco, conferidoEm: hoje };
+    if (!o.img && card.foto) {
+      try {
+        novo.img = await baixarFoto(o, card.foto);
+        console.log(`${tag} foto salva: ${novo.img}`);
+      } catch (e) {
+        console.warn(`${tag} sem foto: ${e.message}`);
+      }
+    }
     if (card.precoDe !== undefined && card.precoDe > card.preco) novo.precoDe = card.precoDe;
     else delete novo.precoDe;
     delete novo.condicaoPreco;

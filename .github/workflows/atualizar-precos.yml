@@ -4,10 +4,19 @@ name: Atualizar precos
 # e, se algo mudou, faz commit na main. O Netlify publica sozinho a cada push.
 # Uma vez por dia, 09:00 de Brasília (UTC-3). Só faz commit (e portanto só gasta
 # um deploy) quando algum preço mudou. Também roda à mão na aba Actions.
+#
+# E roda quando alguém (o enviador de links) acrescenta uma oferta nova no
+# ofertas.json: assim o preço e a foto da oferta nova chegam em minutos, não no
+# dia seguinte. O commit deste robô usa o GITHUB_TOKEN, que NÃO dispara outro
+# workflow: não há laço.
 on:
   schedule:
     - cron: '0 12 * * *'
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - src/data/ofertas.json
 
 permissions:
   contents: write
@@ -34,7 +43,7 @@ jobs:
         run: |
           git config user.name "robo-precos"
           git config user.email "robo-precos@users.noreply.github.com"
-          git add src/data/ofertas.json
+          git add src/data/ofertas.json public/produtos
           if git diff --cached --quiet; then
             echo "Sem mudancas."
           else

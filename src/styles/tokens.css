@@ -29,6 +29,11 @@
   /* ciano do letreiro holográfico do hero (só na cena 3D e no poster) */
   --p-holo: #5ad7f0;
 
+  /* verde de "acertou" (quiz) e papelão das caixas do jogo */
+  --p-acerto: #3fb97a;
+  --p-papelao: #c89a62;
+  --p-papelao-escuro: #a47a47;
+
   --p-camisa: #f6f2ea;
   --p-camisa-suave: #c5ccd9;
   --p-camisa-tenue: #8a96ab;
@@ -56,6 +61,8 @@
   --cta: var(--p-gravata);
   --cta-hover: var(--p-gravata-claro);
   --cta-texto: #ffffff;
+  --acerto: var(--p-acerto);
+  --erro: var(--p-gravata-claro);
 
   /* Fundo da foto de produto. Foto de anúncio tem fundo branco e o produto
      costuma ser escuro: num card escuro ele sumiria. O branco da foto se funde

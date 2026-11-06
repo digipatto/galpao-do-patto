@@ -5,9 +5,11 @@ import { SITE } from '../lib/site';
 interface Props {
   titulo: string;
   descricao: string;
+  /** Páginas de resultado (quiz com resposta) não precisam aparecer no Google. */
+  semIndice?: boolean;
 }
 
-const { titulo, descricao } = Astro.props;
+const { titulo, descricao, semIndice = false } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const imagemSocial = new URL('/og.jpg', Astro.site).href;
@@ -23,6 +25,7 @@ const anoAtual = new Date().getFullYear();
     <meta name="description" content={descricao} />
     <meta name="theme-color" content="#0a0f17" />
     <link rel="canonical" href={canonical} />
+    {semIndice && <meta name="robots" content="noindex" />}
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
@@ -57,6 +60,14 @@ const anoAtual = new Date().getFullYear();
       <div class="coluna">
         <p class="instagram">
           <a href={SITE.instagram} rel="me noopener" target="_blank">{SITE.arroba}</a>
+          {
+            !Astro.url.pathname.startsWith('/jogo') && (
+              <>
+                <span aria-hidden="true"> · </span>
+                <a href="/jogo">Jogar: garimpo no corredor</a>
+              </>
+            )
+          }
         </p>
         <p class="miudo">
           Os links são de afiliado: se você comprar por eles, posso receber uma
