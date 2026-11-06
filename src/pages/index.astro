@@ -2,89 +2,89 @@
 import Base from '../layouts/Base.astro';
 import Oferta from '../components/Oferta.astro';
 import OfertaLinha from '../components/OfertaLinha.astro';
-import { listarOfertas, DIAS_NOVA, ehNova } from '../lib/ofertas';
+import { listarOfertas, VALIDADE_PRECO_DIAS, ehNova } from '../lib/ofertas';
 
 // Dado inválido estoura aqui e o build para, de propósito.
 const ofertas = listarOfertas();
+const destaque = ofertas[0];
 
 // A placa (h1 + subtítulo) é a bio do Instagram, palavra por palavra: quem clica
 // na bio tem que reconhecer a promessa ao chegar.
 
-// A mais nova é o destaque da primeira tela (sobre a cena 3D). As outras vão pra
-// vitrine logo abaixo: várias por tela, como nos feeds de oferta (Pelando,
-// Promobit), em vez de uma tela inteira por produto.
-const [destaque, ...demais] = ofertas;
+// O que a esteira precisa de cada oferta. Link de afiliado NÃO vai aqui: o toque
+// numa caixa abre /go/<id>.
+const paraCena = ofertas.map((o) => ({
+  id: o.id,
+  href: o.href,
+  img: o.img,
+  letra: o.titulo.trim().charAt(0).toUpperCase(),
+  preco: o.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+  conferidoEm: o.conferidoEm,
+  validade: VALIDADE_PRECO_DIAS + 1,
+}));
 
-// Ordenação sem JavaScript: cada linha leva a sua posição em cada ordem (CSS
-// `order`), e o rádio marcado escolhe qual vale (`:has`).
-const posicao = (lista: typeof demais) => new Map(lista.map((o, i) => [o.id, i]));
-const porRecentes = posicao(demais);
+// Ordenação da lista sem JavaScript: cada linha leva a sua posição em cada
+// ordem (CSS `order`), e o rádio marcado escolhe qual vale (`:has`).
+const posicao = (lista: typeof ofertas) => new Map(lista.map((o, i) => [o.id, i]));
+const porRecentes = posicao(ofertas);
 const porDesconto = posicao(
-  [...demais].sort((a, b) => (b.desconto ?? -1) - (a.desconto ?? -1) || b.criadoEm.localeCompare(a.criadoEm)),
+  [...ofertas].sort((a, b) => (b.desconto ?? -1) - (a.desconto ?? -1) || b.criadoEm.localeCompare(a.criadoEm)),
 );
-const porPreco = posicao([...demais].sort((a, b) => a.preco - b.preco));
-const mostraOrdem = demais.length >= 3;
+const porPreco = posicao([...ofertas].sort((a, b) => a.preco - b.preco));
+const mostraOrdem = ofertas.length >= 3;
 ---
 
 <Base
   titulo="Achados & Ofertas — o galpão de ofertas do Patto"
   descricao="Sou o Patto, seu garimpeiro oficial. Achados reais do Mercado Livre, com o link direto de cada um, no meu galpão de ofertas."
 >
-  <!-- O palco: o poster (imagem) aparece já na primeira pintura; a cena 3D entra
-       por cima quando carrega. Sem WebGL, com movimento reduzido ou em aparelho
-       fraco, o poster fica e a página funciona igual. -->
-  <div class="palco" aria-hidden="true">
-    <canvas id="cena"></canvas>
-  </div>
-
   <div class="conteudo">
-    <div class="coluna">
+    <!-- A esteira: o poster (imagem) aparece já na primeira pintura; a cena 3D entra
+         por cima quando carrega. Sem WebGL ou em aparelho fraco, o poster fica e o
+         card do destaque aparece no lugar das caixas tocáveis. -->
+    <section class="palco" aria-label="Esteira de achados">
+      <canvas id="esteira" aria-hidden="true"></canvas>
+
+      <div class="topo">
+        <div class="coluna">
+          <header class="placa">
+            <div class="avatar">
+              <img src="/marca/patto.webp" alt="Patto, o pato de terno" width="56" height="56" />
+            </div>
+            <div class="placa-texto">
+              <h1>Sou o Patto, seu garimpeiro oficial</h1>
+              <p class="sub">Achados reais do Mercado Livre</p>
+              <p class="aviso">Links de afiliado. Mesmo preço do anúncio.</p>
+            </div>
+          </header>
+        </div>
+      </div>
+
       {
-        !destaque ? (
-          <section class="estacao" data-estacao>
-            <header class="placa">
-              <div class="avatar">
-                <img src="/marca/patto.webp" alt="Patto, o pato de terno" width="56" height="56" />
+        destaque && (
+          <div class="base">
+            <div class="coluna">
+              <p class="dica">
+                Toque numa caixa pra abrir
+                <span aria-hidden="true"> · </span>
+                <a href="#vitrine">ver em lista</a>
+              </p>
+              <div class="reserva">
+                <Oferta oferta={destaque} prioridade nova={ehNova(destaque)} />
               </div>
-              <div class="placa-texto">
-                <h1>Sou o Patto, seu garimpeiro oficial</h1>
-                <p class="sub">Achados reais do Mercado Livre</p>
-              </div>
-            </header>
-          </section>
-        ) : (
-          <section class="estacao" data-estacao data-img={destaque.img} data-letra={destaque.titulo.trim().charAt(0).toUpperCase()}>
-            <header class="placa">
-              <div class="avatar">
-                <img src="/marca/patto.webp" alt="Patto, o pato de terno" width="56" height="56" />
-              </div>
-              <div class="placa-texto">
-                <h1>Sou o Patto, seu garimpeiro oficial</h1>
-                <p class="sub">Achados reais do Mercado Livre</p>
-                <p class="aviso">Links de afiliado. Mesmo preço do anúncio.</p>
-              </div>
-            </header>
-            <Oferta oferta={destaque} prioridade nova={ehNova(destaque)} />
-            {demais.length > 0 && (
-              <a class="desce" href="#vitrine">
-                Mais {demais.length} {demais.length === 1 ? 'achado' : 'achados'}
-                <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-                  <path d="M5 8l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </a>
-            )}
-          </section>
+            </div>
+          </div>
         )
       }
-    </div>
+    </section>
 
     {
-      demais.length > 0 && (
+      ofertas.length > 0 && (
         <section id="vitrine" class="vitrine" aria-labelledby="vitrine-titulo">
           <div class="coluna">
             <div class="vitrine-topo">
-              <h2 id="vitrine-titulo">Mais achados</h2>
-              <p class="conta numeros">{demais.length}</p>
+              <h2 id="vitrine-titulo">Todos os achados</h2>
+              <p class="conta numeros">{ofertas.length}</p>
             </div>
 
             {mostraOrdem && (
@@ -100,7 +100,7 @@ const mostraOrdem = demais.length >= 3;
             )}
 
             <ul class="linhas" role="list">
-              {demais.map((o) => (
+              {ofertas.map((o) => (
                 <OfertaLinha
                   oferta={o}
                   nova={ehNova(o)}
@@ -127,6 +127,8 @@ const mostraOrdem = demais.length >= 3;
       </div>
     </div>
   </div>
+
+  <script type="application/json" id="dados-esteira" set:html={JSON.stringify(paraCena)} />
 </Base>
 
 <style>
@@ -139,75 +141,8 @@ const mostraOrdem = demais.length >= 3;
     margin-inline: auto;
   }
 
-  /* ---------- palco (poster + cena 3D) ---------- */
-
-  .palco {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    /* lvh: a barra do navegador do celular aparecendo/sumindo não redimensiona o
-       canvas, então a cena não "pula" ao rolar. */
-    height: 100lvh;
-    background: var(--fundo) url('/cena/poster-retrato.webp') center / cover no-repeat;
-  }
-
-  @media (min-width: 48rem) and (orientation: landscape) {
-    .palco {
-      background-image: url('/cena/poster-paisagem.webp');
-    }
-  }
-
-  .palco canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    transition: opacity 0.5s ease-out;
-  }
-
-  .palco canvas[data-pronto] {
-    opacity: 1;
-  }
-
   .conteudo {
     position: relative;
-    z-index: 1;
-  }
-
-  /* ---------- estação: uma oferta por tela ---------- */
-
-  .estacao {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    gap: var(--e-3);
-    min-height: calc(100svh - var(--barra));
-    padding: var(--e-3) 0;
-  }
-
-  /* "Mais N achados": leva à vitrine. Discreto: o botão da tela é o do card. */
-  .desce {
-    align-self: center;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    margin-bottom: -0.25rem;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--texto-suave);
-    text-decoration: none;
-  }
-
-  .desce:hover {
-    color: var(--marca);
-  }
-
-  .desce svg {
-    display: block;
-    width: 1.1rem;
-    height: 1.1rem;
   }
 
   .sr {
@@ -219,13 +154,151 @@ const mostraOrdem = demais.length >= 3;
     white-space: nowrap;
   }
 
-  /* ---------- vitrine: os outros achados, vários por tela ---------- */
+  /* ---------- palco: a esteira ---------- */
 
-  /* Fundo liso por cima da cena: a lista lê como uma prateleira, não como
-     cards soltos sobre o 3D. */
+  .palco {
+    position: relative;
+    height: calc(100svh - var(--barra));
+    min-height: 30rem;
+    overflow: hidden;
+    background: var(--fundo) url('/cena/poster-retrato.webp') center / cover no-repeat;
+  }
+
+  @media (min-width: 48rem) and (orientation: landscape) {
+    .palco {
+      background-image: url('/cena/poster-paisagem.webp');
+    }
+  }
+
+  .palco canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* arrastar de lado empurra a esteira; vertical continua rolando a página */
+    touch-action: pan-y;
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
+  }
+
+  .palco canvas[data-pronto] {
+    opacity: 1;
+  }
+
+  /* A placa e o rodapé do palco não tapam as caixas: o toque passa pro canvas. */
+  .topo,
+  .base {
+    position: absolute;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+  }
+
+  .topo {
+    top: var(--e-3);
+  }
+
+  .base {
+    bottom: var(--e-3);
+  }
+
+  .base a {
+    pointer-events: auto;
+  }
+
+  .dica {
+    margin: 0;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--texto-suave);
+    text-shadow: 0 1px 8px var(--fundo);
+  }
+
+  .dica a {
+    color: var(--texto);
+    text-underline-offset: 0.2em;
+  }
+
+  /* Com a esteira funcionando, o card do destaque sai (as caixas já são o link).
+     Sem ela (sem JS, sem WebGL, aparelho fraco), é ele que mostra o produto. */
+  .reserva {
+    pointer-events: auto;
+  }
+
+  :global(html.esteira) .reserva {
+    display: none;
+  }
+
+  :global(html:not(.esteira)) .dica {
+    display: none;
+  }
+
+  /* ---------- placa (nome e promessa) ---------- */
+
+  .placa {
+    display: flex;
+    align-items: center;
+    gap: var(--e-3);
+    padding: var(--e-2) var(--e-3);
+    background: color-mix(in srgb, var(--superficie) 90%, transparent);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio-sm);
+    box-shadow: var(--sombra);
+  }
+
+  /* Anel como o do perfil do Instagram: uma cor só, com folga. */
+  .avatar {
+    flex: 0 0 auto;
+    padding: 2px;
+    border-radius: 50%;
+    background: var(--superficie);
+    box-shadow: 0 0 0 2px var(--marca);
+  }
+
+  .avatar img {
+    display: block;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .placa-texto {
+    min-width: 0;
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--fonte-display);
+    font-weight: 700;
+    font-size: clamp(1.0625rem, 4.8vw, 1.375rem);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    word-spacing: 0.1em;
+    color: var(--texto);
+    text-wrap: balance;
+  }
+
+  .sub {
+    margin: 0.15rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--texto-suave);
+  }
+
+  .aviso {
+    margin: 0.15rem 0 0;
+    font-size: 0.6875rem;
+    color: var(--texto-tenue);
+  }
+
+  /* ---------- vitrine: todos os achados, vários por tela ---------- */
+
+  /* Fundo liso: a lista lê como uma prateleira, não como cards soltos. */
   .vitrine {
     position: relative;
-    z-index: 1;
     scroll-margin-top: var(--e-4);
     padding: var(--e-8) 0 var(--e-6);
     background: var(--fundo);
@@ -289,7 +362,9 @@ const mostraOrdem = demais.length >= 3;
     color: var(--texto-suave);
     white-space: nowrap;
     cursor: pointer;
-    transition: background-color 0.15s, color 0.15s;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
   }
 
   .ordem label:hover {
@@ -325,65 +400,6 @@ const mostraOrdem = demais.length >= 3;
     order: var(--o-preco);
   }
 
-  /* ---------- placa (nome e promessa) ---------- */
-
-  .placa {
-    display: flex;
-    align-items: center;
-    gap: var(--e-3);
-    margin-bottom: auto;
-    padding: var(--e-2) var(--e-3);
-    background: color-mix(in srgb, var(--superficie) 90%, transparent);
-    border: 1px solid var(--borda);
-    border-radius: var(--raio-sm);
-    box-shadow: var(--sombra);
-  }
-
-  /* Anel como o do perfil do Instagram: uma cor só, com folga. */
-  .avatar {
-    flex: 0 0 auto;
-    padding: 2px;
-    border-radius: 50%;
-    background: var(--superficie);
-    box-shadow: 0 0 0 2px var(--marca);
-  }
-
-  .avatar img {
-    display: block;
-    width: 3rem;
-    height: 3rem;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  .placa-texto {
-    min-width: 0;
-  }
-
-  h1 {
-    margin: 0;
-    font-family: var(--fonte-display);
-    font-weight: 700;
-    font-size: clamp(1.0625rem, 4.8vw, 1.375rem);
-    line-height: 1.12;
-    letter-spacing: -0.01em;
-    word-spacing: 0.1em;
-    color: var(--texto);
-    text-wrap: balance;
-  }
-
-  .sub {
-    margin: 0.15rem 0 0;
-    font-size: 0.8125rem;
-    color: var(--texto-suave);
-  }
-
-  .aviso {
-    margin: 0.15rem 0 0;
-    font-size: 0.6875rem;
-    color: var(--texto-tenue);
-  }
-
   /* ---------- barra "ver todas" ---------- */
 
   .barra {
@@ -394,7 +410,7 @@ const mostraOrdem = demais.length >= 3;
     box-sizing: border-box;
     padding: var(--e-3) 0 max(var(--e-3), env(safe-area-inset-bottom));
     background: var(--fundo);
-    /* Sombra com deslocamento: só aparece quando a cena passa por baixo. */
+    /* Sombra com deslocamento: só aparece quando o conteúdo passa por baixo. */
     box-shadow: 0 -14px 20px -14px rgb(0 0 0 / 0.85);
   }
 
@@ -411,7 +427,9 @@ const mostraOrdem = demais.length >= 3;
     font-size: 1.0625rem;
     font-weight: 700;
     text-decoration: none;
-    transition: background-color 0.15s, transform 0.15s;
+    transition:
+      background-color 0.15s,
+      transform 0.15s;
   }
 
   .ver-todas:hover {
@@ -432,8 +450,8 @@ const mostraOrdem = demais.length >= 3;
     transform: translateX(3px);
   }
 
-  /* Celular baixo (375×667) e minúsculo (320×568): a placa encolhe pra a oferta e
-     os botões continuarem na primeira tela (regra 11). */
+  /* Celular baixo (375×667) e minúsculo (320×568): a placa encolhe pra a esteira
+     e os botões continuarem na primeira tela (regra 11). */
   @media (max-height: 700px) {
     .aviso {
       display: none;
@@ -467,29 +485,31 @@ const mostraOrdem = demais.length >= 3;
 </script>
 
 <script>
-  // A cena 3D é um acabamento: carrega depois da primeira pintura, sob demanda.
-  // Sem WebGL, com movimento reduzido, economia de dados ou aparelho fraco, o
-  // poster fica e tudo continua funcionando.
-  const palco = document.getElementById('cena') as HTMLCanvasElement | null;
+  // A esteira 3D é um acabamento: carrega depois da primeira pintura, sob
+  // demanda. Sem WebGL, com economia de dados ou aparelho fraco, o poster fica,
+  // o card do destaque aparece e tudo continua funcionando.
+  const tela = document.getElementById('esteira') as HTMLCanvasElement | null;
+  const dados = document.getElementById('dados-esteira');
   const nav = navigator as Navigator & { connection?: { saveData?: boolean }; deviceMemory?: number };
-  const poupar =
-    matchMedia('(prefers-reduced-motion: reduce)').matches ||
-    !!nav.connection?.saveData ||
-    (nav.deviceMemory ?? 8) < 2 ||
-    (nav.hardwareConcurrency ?? 8) < 2;
+  const poupar = !!nav.connection?.saveData || (nav.deviceMemory ?? 8) < 2 || (nav.hardwareConcurrency ?? 8) < 2;
 
-  if (palco && !poupar) {
-    const secoes = [...document.querySelectorAll<HTMLElement>('[data-estacao]')];
+  if (tela && dados && !poupar) {
+    const ofertas = JSON.parse(dados.textContent || '[]');
     const iniciar = () =>
-      import('../cena/galpao')
+      import('../cena/esteira')
         .then(({ montar }) =>
-          montar(palco, {
-            estacoes: secoes.map((el) => ({ el, img: el.dataset.img, letra: el.dataset.letra })),
+          montar(tela, {
+            ofertas,
+            palco: tela.parentElement,
+            aoAbrir: (o) => location.assign(o.href),
           }),
         )
-        .then(() => palco.setAttribute('data-pronto', ''))
+        .then(() => {
+          tela.setAttribute('data-pronto', '');
+          document.documentElement.classList.add('esteira');
+        })
         .catch(() => {
-          /* sem WebGL ou falha ao montar: o poster continua à vista */
+          /* sem WebGL ou falha ao montar: o poster e o card continuam à vista */
         });
     if ('requestIdleCallback' in window) requestIdleCallback(iniciar, { timeout: 1500 });
     else setTimeout(iniciar, 300);

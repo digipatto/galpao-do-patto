@@ -6,16 +6,25 @@
 
 A página do perfil **@achadoseofertas.patto** (Instagram, "Patto | Achados &
 Ofertas"). Uma página só, numa coluna de largura de celular, com a cara de um
-**galpão 3D**: atrás da primeira tela, uma cena WebGL minimalista (um corredor com
-o pedestal do achado mais novo; a caixa mostra a foto do produto). Texto, preço e
-links são **HTML por cima da cena**. Primeira tela: a placa com a copy da bio, o
-card do achado mais novo (destaque) com o botão vermelho "Pegar oferta" e o link
-"Mais N achados". Logo abaixo, a **vitrine** (fundo liso): os outros achados em
-linhas compactas, vários por tela, com abas Recentes / Desconto / Menor preço
-(rádio + `:has`, sem JS; só aparecem com 3+ linhas). Colado no fim da tela, sempre,
-o botão laranja "Ver todas as ofertas" (a vitrine geral de afiliado no ML).
-Conforme ofertas entram em `src/data/ofertas.json`, a vitrine cresce sozinha. O
-preço é lido do ML automaticamente (ver "Preço").
+**galpão de caixas em movimento**: a primeira tela é uma **esteira** 3D (WebGL,
+`src/cena/esteira.ts`): fileiras de caixas deslizam em esteiras (cada fileira num
+sentido e numa velocidade); cada caixa mostra a **foto do produto** e uma
+**etiqueta de preço**; **tocar numa caixa abre o produto** (`/go/<id>`, um toque).
+Arrastar uma fileira empurra a esteira (inércia); a fileira tocada desacelera; as
+caixas se inclinam pro lado em que andam. Com poucas ofertas, as caixas se repetem
+pra encher a esteira (com 1 oferta, todas são dela); com várias, cada fileira
+começa numa oferta diferente. Texto, preço e links de verdade ficam em **HTML**:
+placa com a copy da bio no alto do palco, dica "Toque numa caixa pra abrir · ver
+em lista" embaixo, e logo abaixo do palco a **vitrine** (fundo liso) com TODOS os
+achados em linhas compactas e abas Recentes / Desconto / Menor preço (rádio +
+`:has`, sem JS; só com 3+ linhas). Sem WebGL/JS (ou aparelho fraco), o poster
+fica e o **card do destaque** (`Oferta.astro`) aparece no lugar das caixas.
+Colado no fim da tela, sempre, o botão laranja "Ver todas as ofertas" (a vitrine
+geral de afiliado no ML). Conforme ofertas entram em `src/data/ofertas.json`, a
+esteira e a vitrine crescem sozinhas. O preço é lido do ML automaticamente (ver
+"Preço"). A etiqueta só mostra o preço enquanto ele estiver conferido (senão diz
+"Ver preço"). O corredor 3D com um pedestal por oferta existiu até 06/11/2026
+(commit db82b8f); o dono pediu caixas em movimento no lugar.
 
 Por que a vitrine (06/11/2026): o dono pediu mais qualidade de navegação com base
 nos sites de oferta que bombam (Pelando, Promobit). Eles mostram muitas ofertas por
@@ -42,13 +51,15 @@ algo muda).
    o link `mercadolivre.com/sec/...` que lista todos os produtos do dono);
    `/go/<id>` leva ao link de uma oferta. `todas` é id reservado.
 3. **Dado inválido derruba o build** (Zod), com mensagem apontando o campo.
-4. **O único JS é a cena 3D, e ela é opcional.** (`/quiz/<id>` não tem JS: ver "Quiz".) `three` puro (~130 KB gzip),
-   carregado depois da primeira pintura (`src/cena/galpao.ts`), sem React, sem
-   GSAP, sem framework. A página inteira funciona sem ele: o poster
-   (`public/cena/poster-*.webp`) fica no lugar da cena sem WebGL, com
-   `prefers-reduced-motion`, com economia de dados ou em aparelho fraco
-   (menos de 2 GB de RAM ou 2 núcleos). A cena **só desenha enquanto algo se
-   move** (entrada, rolagem, cursor): parada, não gasta bateria. React, shadcn,
+4. **O único JS é a esteira 3D, e ela é opcional.** (`/quiz/<id>` não tem JS: ver
+   "Quiz".) `three` puro, carregado depois da primeira pintura
+   (`src/cena/esteira.ts`), sem React, sem GSAP, sem framework. A página inteira
+   funciona sem ele: o poster (`public/cena/poster-*.webp`) fica no lugar da cena
+   sem WebGL, com economia de dados ou em aparelho fraco (menos de 2 GB de RAM ou
+   2 núcleos), e o card do destaque faz o papel das caixas. Com
+   `prefers-reduced-motion` a esteira fica parada, mas as caixas continuam
+   tocáveis. A esteira **só desenha enquanto o palco está à vista**
+   (IntersectionObserver) e a aba está aberta; rolou pra vitrine, dorme. React, shadcn,
    Kokonut e Motion continuam parados. Não importar nenhum sem o usuário pedir.
 5. **Mobile-first, e o link a UM toque.** O público vem do Instagram, no celular.
    O card inteiro é clicável.
@@ -103,33 +114,36 @@ Um jogo `/jogo` ("Garimpo no corredor") foi feito e tirado a pedido do dono em 0
   aparece (sem `conferidoEm` o card mostra "Ver preço atual"). Conferir a foto depois: o
   robô casa o título digitado com o card do anúncio.
 
-## O galpão 3D (visual)
+## A esteira 3D (visual)
 
-A página é uma cena WebGL fixa atrás do conteúdo (`.palco`, `position: fixed`,
-`100lvh` pra a barra do navegador do celular não redimensionar o canvas).
+O palco (`.palco`, altura `100svh - barra`) tem o canvas e, por cima, a placa e a
+dica (`pointer-events: none`, pra o toque passar pro canvas). `touch-action:
+pan-y`: arrastar de lado empurra a esteira, vertical continua rolando a página.
 
-- **Cena** (`src/cena/galpao.ts`, three puro): piso com faixas âmbar, fita de LED
-  ciano no teto, estantes ao fundo (InstancedMesh), parede de vidro com o letreiro
-  holográfico "Achados & Ofertas", e **um pedestal por oferta** com uma caixa de
-  papelão cuja face da frente é a foto do produto (foto de anúncio tem fundo
-  branco: vai sobre `--foto-fundo` com multiply, como no card). Mais um pedestal
-  vazio no fim do corredor (sinal de que cresce). **O Patto NÃO aparece na cena**
-  (o dono achou demais: ele já está na placa). Cores lidas dos tokens CSS: nenhum hex no TS. Cor nova
-  da cena entra como token em `tokens.css` (`--p-holo`).
-- **Rolagem**: cada `<section data-estacao>` é uma estação e move a câmera por um
-  pedestal (data-driven: lê o DOM). Hoje só o destaque é estação (`min-height:
-  100svh - barra`); a vitrine abaixo tem fundo liso e cobre a cena ao rolar.
-- **Câmera por tela**: retrato abre o campo de visão (58°) e usa `setViewOffset`
-  pra subir a caixa na tela (`foco`), porque o card ocupa a metade de baixo.
+- **Cena** (`src/cena/esteira.ts`, three puro): 4 esteiras em retrato (3 em
+  paisagem ou celular baixo, `h < 640`), cada uma com 10 caixas e rolos; parede
+  escura, montantes azuis (`--p-terno`) e uma fita de LED ciano (`--p-holo`) no
+  alto. As de baixo ficam mais perto da câmera. O enquadramento nasce da altura
+  que precisa caber (`nFileiras * DY + 3.4`), não de uma largura fixa. A foto do
+  produto é a face da frente da caixa (foto de anúncio tem fundo branco: vai sobre
+  `--foto-fundo` com multiply, como no card); a **etiqueta** é uma pílula âmbar
+  (`--p-bico`) com furo de barbante e o preço, em textura de canvas.
+  **O Patto NÃO aparece na cena** (já está na placa). Cores lidas dos tokens CSS:
+  nenhum hex no TS.
+- **Interação**: hover (mouse) levanta e amplia a caixa, a esteira da caixa
+  desacelera pra dar tempo de pegar; toque aperta a caixa (animação curta) e abre.
+  Arrasto > 7 px vira empurrão com inércia (não abre). `navigator.vibrate(8)` ao
+  abrir. Constantes no topo do arquivo (`ESP`, `DY`, `velocidades`).
 - **Poster**: `public/cena/poster-retrato.webp` (780×1688) e `poster-paisagem.webp`
-  (1600×900). A caixa do poster mostra a letra A, não um produto, pra nunca ficar
-  velho. **Regerar quando mudar a cena**: `npm run build`, servir `dist/`, abrir
-  `/cena-poster?w=780&h=1688&foco=0.2&leve=1` (retrato) e
-  `/cena-poster?w=1600&h=900&foco=0.1` (paisagem) no Edge/Chrome headless com
-  `--enable-unsafe-swiftshader --use-angle=swiftshader --window-size=<w>,<h>`,
-  tirar print e converter pra webp. `/cena-poster` é gerador (noindex), como `/og`.
-- **Card** (`Oferta.astro`): HTML puro sobre a cena, translúcido, com miniatura da
-  foto (o poster não tem a foto do produto), título, preço, selos e o botão.
+  (1600×900). As caixas do poster mostram a letra A e "Ver preço", não um produto,
+  pra nunca ficar velho. **Regerar quando mudar a cena**: `npm run build`, servir
+  `dist/`, abrir `/cena-poster?w=780&h=1688` (retrato) e
+  `/cena-poster?w=1600&h=900` (paisagem) no Edge/Chrome headless com
+  `--enable-unsafe-swiftshader --use-angle=swiftshader`, esperar
+  `window.__cenaPronta`, tirar print e converter pra webp. `/cena-poster` é
+  gerador (noindex), como `/og`.
+- **Card** (`Oferta.astro`): HTML puro, usado quando a esteira não carrega.
+  **Linha** (`OfertaLinha.astro`): a versão compacta da vitrine.
 
 ## Mapa de pastas
 
@@ -139,21 +153,22 @@ src/
   lib/schema.ts            Zod: formato de uma oferta
   lib/ofertas.ts           carrega, valida, deriva (desconto, economia, href)
   lib/site.ts              nome, Instagram e a vitrine geral de afiliado
-  components/Oferta.astro  o card HTML de uma oferta (sobre a cena)
-  cena/galpao.ts           a cena 3D (three puro), carregada sob demanda
+  components/Oferta.astro  o card HTML de uma oferta (fallback sem WebGL)
+  components/OfertaLinha.astro  linha compacta da vitrine
+  cena/esteira.ts          a esteira 3D (three puro), carregada sob demanda
   layouts/Base.astro       <head>, OG, rodapé com aviso de afiliado
-  pages/index.astro        palco (poster + canvas) + placa + estações + barra "ver todas"
+  pages/index.astro        palco (poster + canvas + placa) + vitrine + barra "ver todas"
   pages/go/[id].ts         302 pra vitrine (/go/todas) ou oferta (roda no servidor)
   pages/quiz/[id].astro    pergunta e resultado do quiz (roda no servidor, 0 KB de JS)
   data/quizzes.json        quizzes (começa vazio: []); o enviador escreve aqui
   lib/quizzes.ts           carrega e valida os quizzes (oferta inexistente derruba o build)
   pages/og.astro           gerador da imagem de compartilhamento (noindex)
-  pages/cena-poster.astro  gerador dos posters da cena (noindex)
+  pages/cena-poster.astro  gerador dos posters da esteira (noindex)
 scripts/atualizar-precos.mjs  lê o preço de cada oferta no ML (roda no GitHub Actions)
 .github/workflows/atualizar-precos.yml  roda o script 2x por dia e commita
   styles/tokens.css        cores, tipografia, espaçamento
 public/
-  cena/poster-*.webp       poster da cena (retrato e paisagem)
+  cena/poster-*.webp       poster da esteira (retrato e paisagem)
   marca/patto.webp         avatar (recorte de cabeça e ombros da arte do Patto)
   produtos/*.webp          foto de cada oferta
   og.jpg, favicon.png, apple-touch-icon.png

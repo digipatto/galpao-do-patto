@@ -2,13 +2,13 @@
 import '../styles/tokens.css';
 
 /**
- * Gerador dos posters do galpão (retrato 780×1688 e paisagem 1600×900).
+ * Gerador dos posters da esteira (retrato 780×1688 e paisagem 1600×900).
  *
  * Não é página de visitante: existe pra ser fotografada e virar
  * public/cena/poster-retrato.webp e poster-paisagem.webp, o que aparece no
  * lugar da cena 3D enquanto ela carrega, sem WebGL, ou com movimento reduzido.
  *
- * Uso: /cena-poster?w=780&h=1688&foco=0.2   (a caixa mostra a letra A, não um
+ * Uso: /cena-poster?w=780&h=1688   (as caixas mostram a letra A, não um
  * produto, pra o poster nunca ficar velho quando as ofertas mudarem).
  * Pra regerar: npm run build, servir dist/, abrir com --enable-unsafe-swiftshader.
  */
@@ -46,17 +46,16 @@ import '../styles/tokens.css';
   const q = new URLSearchParams(location.search);
   const w = Number(q.get('w')) || 780;
   const h = Number(q.get('h')) || 1688;
-  const foco = Number(q.get('foco') ?? 0.2);
   const cv = document.getElementById('cena') as HTMLCanvasElement;
   cv.style.width = `${w}px`;
   cv.style.height = `${h}px`;
-  import('../cena/galpao').then(({ montar }) =>
+  import('../cena/esteira').then(({ montar }) =>
     montar(cv, {
-      estacoes: [{ el: null, letra: 'A' }],
+      // letra A, sem preço: o poster nunca fica velho quando as ofertas mudam
+      ofertas: [{ id: 'poster', href: '/', letra: 'A', validade: 3 }],
       estatica: true,
       tamanho: { w, h },
       leve: q.get('leve') === '1',
-      foco,
     }),
   );
 </script>
