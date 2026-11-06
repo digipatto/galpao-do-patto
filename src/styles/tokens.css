@@ -29,10 +29,8 @@
   /* ciano do letreiro holográfico do hero (só na cena 3D e no poster) */
   --p-holo: #5ad7f0;
 
-  /* verde de "acertou" (quiz) e papelão das caixas do jogo */
+  /* verde de "acertou" (quiz) */
   --p-acerto: #3fb97a;
-  --p-papelao: #c89a62;
-  --p-papelao-escuro: #a47a47;
 
   --p-camisa: #f6f2ea;
   --p-camisa-suave: #c5ccd9;

@@ -60,14 +60,6 @@ const anoAtual = new Date().getFullYear();
       <div class="coluna">
         <p class="instagram">
           <a href={SITE.instagram} rel="me noopener" target="_blank">{SITE.arroba}</a>
-          {
-            !Astro.url.pathname.startsWith('/jogo') && (
-              <>
-                <span aria-hidden="true"> · </span>
-                <a href="/jogo">Jogar: garimpo no corredor</a>
-              </>
-            )
-          }
         </p>
         <p class="miudo">
           Os links são de afiliado: se você comprar por eles, posso receber uma
